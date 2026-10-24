@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电子衍射 · 厄瓦尔德球 · 准晶 · 孪晶 · 非晶 · 缺陷 · 二次衍射 · 带轴</title>
+<style>
+  :root{
+    --bg:#0a0e13; --panel:#111820; --panel2:#0d141b;
+    --border:#222d39; --text:#d7e0ea; --dim:#7d8d9e;
+    --accent:#35d0ba; --accent2:#f2a54a;
+    --twin:#e88cd4; --twin1:#ffd27a; --twin2:#b48cff;
+    --defect:#ff9f6a; --amor:#8ecbf0; --dbl:#e2b4ff;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:13px; display:flex; flex-direction:column; overflow:hidden;
+  }
+  header{
+    flex:0 0 auto; padding:10px 18px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    background:linear-gradient(180deg,#101821,#0b1118);
+  }
+  header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.5px;}
+  header h1 span{color:var(--accent);}
+  header .sub{font-size:11.5px;color:var(--dim);}
+  header .sub b{color:var(--accent);font-weight:600;}
+
+  .zone-bar{
+    margin-left:auto; display:flex; align-items:center; gap:6px;
+    padding:5px 10px; background:#0d141b; border:1px solid #273546;
+    border-radius:6px;
+  }
+  .zone-bar label{
+    font-size:11.5px; color:var(--accent); font-weight:600; white-space:nowrap;
+  }
+  .zone-bar input{
+    width:130px; background:#18222d; color:var(--text);
+    border:1px solid #273546; border-radius:4px;
+    padding:3px 7px; font-size:11.5px; outline:none;
+    font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-variant-numeric:tabular-nums;
+  }
+  .zone-bar input:focus{border-color:var(--accent); background:#0f1a24;}
+  .zone-bar button{
+    background:#18222d; color:var(--text); border:1px solid #273546;
+    border-radius:4px; padding:3px 11px; font-size:11.5px;
+    cursor:pointer; transition:.15s;
+  }
+  .zone-bar button:hover:not(:disabled){background:#213043; border-color:var(--accent);}
+  .zone-bar button:disabled{opacity:.35; cursor:not-allowed;}
+  .zone-bar input:disabled{opacity:.4; cursor:not-allowed;}
+  .zone-bar #zoneInfo{
+    font-size:11px; color:var(--dim); min-width:52px;
+    font-family:ui-monospace,Menlo,Consolas,monospace;
+  }
+  .zone-bar #btnExport{margin-left:2px;}
+
+  .app{
+    flex:1 1 auto; min-height:0;
+    display:grid; grid-template-columns:324px 1fr 1fr;
+    gap:1px; background:var(--border);
+  }
+
+  aside{background:var(--panel); overflow-y:auto; padding:12px 14px 30px;}
+  aside::-webkit-scrollbar{width:8px;}
+  aside::-webkit-scrollbar-thumb{background:#243040;border-radius:4px;}
+  aside::-webkit-scrollbar-track{background:transparent;}
+
+  .group{margin-bottom:16px;}
+  .group-title{
+    font-size:11px; letter-spacing:1.2px; color:var(--accent);
+    text-transform:uppercase; padding-bottom:6px; margin-bottom:8px;
+    border-bottom:1px solid #1c2733;
+  }
+  .row{
+    display:grid; grid-template-columns:78px 1fr 84px;
+    align-items:center; gap:8px; margin:7px 0;
+  }
+  .row label{
+    font-size:11.5px; color:var(--dim);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  input[type=range]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:3px; background:#22303e; border-radius:2px;
+    outline:none; cursor:pointer;
+  }
+  input[type=range]:disabled{opacity:.35; cursor:not-allowed;}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:12px; height:12px; border-radius:50%;
+    background:var(--accent); border:2px solid #0a1017;
+    box-shadow:0 0 6px rgba(53,208,186,.55);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:10px; height:10px; border-radius:50%;
+    background:var(--accent); border:2px solid #0a1017;
+  }
+
+  .valwrap{
+    display:flex; align-items:center; gap:3px;
+    background:#0b1219; border:1px solid #1b2530; border-radius:5px;
+    padding:1px 4px; transition:border-color .15s, box-shadow .15s, background .15s;
+  }
+  .valwrap:hover{border-color:#2c3d51; background:#0d1620;}
+  .valwrap:focus-within{
+    border-color:var(--accent); background:#0d1620;
+    box-shadow:0 0 0 2px rgba(53,208,186,.12);
+  }
+  .valInput{
+    width:100%; min-width:0; background:transparent; border:none; outline:none;
+    color:var(--text); text-align:right;
+    font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:11px; font-variant-numeric:tabular-nums;
+    padding:2px 0; cursor:text;
+  }
+  .valInput:disabled{opacity:.4; cursor:not-allowed;}
+  .valInput::-webkit-outer-spin-button,
+  .valInput::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  .valInput{-moz-appearance:textfield; appearance:textfield;}
+  .unit{
+    flex:0 0 auto; font-size:9.5px; color:#5f7183;
+    white-space:nowrap; padding-right:1px; pointer-events:none;
+  }
+
+  select, input[type=text]{
+    background:#18222d; color:var(--text);
+    border:1px solid #273546; border-radius:5px;
+    padding:4px 6px; font-size:11.5px; outline:none;
+    font-family:inherit; min-width:0;
+  }
+  select:focus, input[type=text]:focus{border-color:var(--accent);}
+  select:disabled, input[type=text]:disabled{opacity:.35; cursor:not-allowed;}
+
+  .flexrow{display:flex; align-items:center; gap:8px; margin:7px 0;}
+  .flexrow label{font-size:11.5px; color:var(--dim); white-space:nowrap; flex:0 0 auto;}
+  .flexrow select, .flexrow input[type=text]{flex:1 1 auto;}
+
+  .btn{
+    width:100%; margin-top:6px; padding:7px;
+    background:#18222d; color:var(--text);
+    border:1px solid #273546; border-radius:6px;
+    cursor:pointer; font-size:12px; transition:.15s;
+  }
+  .btn:hover{background:#213043; border-color:var(--accent);}
+
+  .readout{
+    margin-top:4px; padding:9px 10px;
+    background:var(--panel2); border:1px solid #1c2733;
+    border-radius:6px; font-size:11.5px; line-height:1.8;
+  }
+  .readout b{color:var(--accent); font-weight:600;}
+  .readout .k{color:var(--dim);}
+  .readout .twin{color:var(--twin); font-weight:600;}
+  .readout .twin1{color:var(--twin1); font-weight:600;}
+  .readout .twin2{color:var(--twin2); font-weight:600;}
+  .readout .holz{color:#f2c46a; font-weight:600;}
+  .readout .quasi{color:#8ecbf0; font-weight:600;}
+  .readout .defect{color:#ff9f6a; font-weight:600;}
+  .readout .amor{color:#8ecbf0; font-weight:600;}
+  .readout .dbl{color:#e2b4ff; font-weight:600;}
+
+  .view{
+    background:var(--panel2); display:flex; flex-direction:column;
+    min-width:0; min-height:0; position:relative;
+  }
+  .view-title{
+    flex:0 0 auto; padding:8px 14px;
+    font-size:11.5px; letter-spacing:1px; color:var(--dim);
+    border-bottom:1px solid #17202a; background:#0b1219;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .view-title em{font-style:normal; color:#4d5f70; font-size:10.5px;}
+  canvas{flex:1 1 auto; display:block; width:100%; height:100%; min-height:0; cursor:default;}
+  #canvas3d{cursor:grab;}
+  #canvas3d:active{cursor:grabbing;}
+
+  @media (max-width:1080px){
+    .app{grid-template-columns:1fr; grid-template-rows:minmax(180px,34vh) 1fr 1fr; overflow-y:auto;}
+    aside{order:0;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>电子衍射 · <span>厄瓦尔德球</span> · 准晶 · 孪晶 · 非晶 · 缺陷 · 二次衍射</h1>
+  <div class="sub">带轴 <b>[uvw]</b> 快速取向，自动计算该方向零层衍射</div>
+  <div class="zone-bar">
+    <label for="zoneInput">带轴</label>
+    <input type="text" id="zoneInput" placeholder="如 001 / 1,1,1 / 1-11" spellcheck="false" />
+    <button id="zoneApply" title="应用带轴（Enter 也可）">应用</button>
+    <button id="zoneClear" title="清除带轴">清除</button>
+    <span id="zoneInfo"></span>
+    <button id="btnExport" title="导出当前衍射花样为 PNG">📷 导出</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside id="controls"></aside>
+
+  <section class="view">
+    <div class="view-title">
+      <span>厄瓦尔德球 / 倒易点阵（三维）</span>
+      <em>拖动旋转</em>
+    </div>
+    <canvas id="canvas3d"></canvas>
+  </section>
+
+  <section class="view">
+    <div class="view-title">
+      <span>电子衍射花样（实时）</span>
+      <em id="infoPattern"></em>
+    </div>
+    <canvas id="canvasPattern"></canvas>
+  </section>
+</div>
+
+<script>
+/* =========================================================
+   向量工具
+   ========================================================= */
+const V = {
+  add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],
+  sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],
+  mul:(a,s)=>[a[0]*s,a[1]*s,a[2]*s],
+  dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  cross:(a,b)=>[a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]],
+  len:a=>Math.hypot(a[0],a[1],a[2]),
+};
+
+/* =========================================================
+   结构基元预设
+   ========================================================= */
+function fccAtoms(w, ox=0, oy=0, oz=0){
+  return [
+    [ox,       oy,       oz,       w],
+    [ox,       oy + 0.5, oz + 0.5, w],
+    [ox + 0.5, oy,       oz + 0.5, w],
+    [ox + 0.5, oy + 0.5, oz,       w],
+  ];
+}
+
+const PRESETS = {
+  P:    { name:'简单点阵 P',        basis:[[0,0,0,1]], lattice:{a:0.40,b:0.40,c:0.40,alpha:90,beta:90,gamma:90} },
+  I:    { name:'体心 I',            basis:[[0,0,0,1],[0.5,0.5,0.5,1]], lattice:{a:0.30,b:0.30,c:0.30,alpha:90,beta:90,gamma:90} },
+  F:    { name:'面心 F',            basis:fccAtoms(1), lattice:{a:0.40,b:0.40,c:0.40,alpha:90,beta:90,gamma:90} },
+  C:    { name:'底心 C',            basis:[[0,0,0,1],[0.5,0.5,0,1]], lattice:{a:0.35,b:0.45,c:0.40,alpha:90,beta:90,gamma:90} },
+  A:    { name:'底心 A',            basis:[[0,0,0,1],[0,0.5,0.5,1]], lattice:{a:0.45,b:0.35,c:0.40,alpha:90,beta:90,gamma:90} },
+  B:    { name:'底心 B',            basis:[[0,0,0,1],[0.5,0,0.5,1]], lattice:{a:0.35,b:0.45,c:0.40,alpha:90,beta:90,gamma:90} },
+  D:    { name:'金刚石型',          basis:[...fccAtoms(1), ...fccAtoms(1, 0.25, 0.25, 0.25)], lattice:{a:0.357,b:0.357,c:0.357,alpha:90,beta:90,gamma:90} },
+  NaCl: { name:'NaCl 型',           basis:[...fccAtoms(11), ...fccAtoms(17, 0.5, 0, 0)], lattice:{a:0.564,b:0.564,c:0.564,alpha:90,beta:90,gamma:90} },
+  CsCl: { name:'CsCl 型',           basis:[[0,0,0,55],[0.5,0.5,0.5,17]], lattice:{a:0.411,b:0.411,c:0.411,alpha:90,beta:90,gamma:90} },
+  ZnS:  { name:'闪锌矿 ZnS',        basis:[...fccAtoms(30), ...fccAtoms(16, 0.25, 0.25, 0.25)], lattice:{a:0.541,b:0.541,c:0.541,alpha:90,beta:90,gamma:90} },
+  HCP:  { name:'六方密堆 HCP (Mg)', basis:[[1/3,2/3,1/4,12],[2/3,1/3,3/4,12]], lattice:{a:0.321,b:0.321,c:0.521,alpha:90,beta:90,gamma:120} },
+  WZ:   { name:'纤锌矿 ZnO',        basis:[[1/3,2/3,0,30],[2/3,1/3,1/2,30],[1/3,2/3,0.375,8],[2/3,1/3,0.875,8]], lattice:{a:0.325,b:0.325,c:0.521,alpha:90,beta:90,gamma:120} },
+  PEROV:{ name:'钙钛矿 SrTiO₃',     basis:[[0,0,0,38],[0.5,0.5,0.5,22],[0.5,0.5,0,8],[0.5,0,0.5,8],[0,0.5,0.5,8]], lattice:{a:0.3905,b:0.3905,c:0.3905,alpha:90,beta:90,gamma:90} },
+  RUTILE:{ name:'金红石 TiO₂',      basis:[[0,0,0,22],[0.5,0.5,0.5,22],[0.305,0.305,0,8],[0.695,0.695,0,8],[0.805,0.195,0.5,8],[0.195,0.805,0.5,8]], lattice:{a:0.4594,b:0.4594,c:0.2959,alpha:90,beta:90,gamma:90} },
+  L12:  { name:'L1₂ Cu₃Au',         basis:[[0,0,0,79],[0.5,0.5,0,29],[0.5,0,0.5,29],[0,0.5,0.5,29]], lattice:{a:0.375,b:0.375,c:0.375,alpha:90,beta:90,gamma:90} },
+  L10:  { name:'L1₀ CuAu',          basis:[[0,0,0,29],[0.5,0.5,0,29],[0.5,0,0.5,79],[0,0.5,0.5,79]], lattice:{a:0.396,b:0.396,c:0.367,alpha:90,beta:90,gamma:90} },
+  Q10:  { name:'十重准晶 (10f)',     basis:[[0,0,0,1]], quasi:{ n:10 }, lattice:{a:0.40,b:0.40,c:0.40,alpha:90,beta:90,gamma:90} },
+  Q8:   { name:'八重准晶 (8f)',      basis:[[0,0,0,1]], quasi:{ n:8 },  lattice:{a:0.40,b:0.40,c:0.40,alpha:90,beta:90,gamma:90} },
+  Q12:  { name:'十二重准晶 (12f)',   basis:[[0,0,0,1]], quasi:{ n:12 }, lattice:{a:0.40,b:0.40,c:0.40,alpha:90,beta:90,gamma:90} },
+  Q5:   { name:'五重准晶 (5f)',      basis:[[0,0,0,1]], quasi:{ n:10 }, lattice:{a:0.40,b:0.40,c:0.40,alpha:90,beta:90,gamma:90} },
+  custom:{ name:'自定义基元…',      basis:[[0,0,0,1]] },
+};
+
+const QUASI_KEYS = new Set(['Q10','Q8','Q12','Q5']);
+
+/* =========================================================
+   参数定义
+   ========================================================= */
+const groups = [
+  { title:'电子束', params:[
+    { key:'voltage', label:'加速电压', min:10, max:1000, step:5,   def:200, unit:'kV', dec:0 },
+    { key:'camLen',  label:'相机长度 L', min:100, max:3000, step:10, def:800, unit:'mm', dec:0 },
+  ]},
+  { title:'晶格常数', params:[
+    { key:'a',     label:'a / g₀⁻¹', min:0.15, max:1.20, step:0.005, def:0.40, unit:'nm', dec:3 },
+    { key:'b',     label:'b',  min:0.15, max:1.20, step:0.005, def:0.40, unit:'nm', dec:3 },
+    { key:'c',     label:'c',  min:0.15, max:1.20, step:0.005, def:0.40, unit:'nm', dec:3 },
+    { key:'alpha', label:'α',  min:30, max:150, step:1, def:90, unit:'°', dec:0 },
+    { key:'beta',  label:'β',  min:30, max:150, step:1, def:90, unit:'°', dec:0 },
+    { key:'gamma', label:'γ',  min:30, max:150, step:1, def:90, unit:'°', dec:0 },
+  ]},
+  { title:'样品类型', params:[
+    { key:'sampleType', label:'样品', type:'select', def:'single',
+      options:[
+        { value:'single',     label:'单晶' },
+        { value:'poly',       label:'多晶（粉末环）' },
+        { value:'amorphous',  label:'非晶（短程序）' },
+      ]},
+  ]},
+  { title:'非晶参数', params:[
+    { key:'amorphousD',   label:'平均原子间距 d', min:0.15, max:1.0, step:0.005, def:0.40, unit:'nm', dec:3 },
+    { key:'amorphousDisp',label:'无序度 σ', min:0.05, max:1.0, step:0.01, def:0.30, unit:'', dec:2 },
+    { key:'amorphousRings',label:'显示环数', min:1, max:6, step:1, def:4, unit:'', dec:0 },
+  ]},
+  { title:'晶体缺陷', params:[
+    { key:'defectType', label:'缺陷类型', type:'select', def:'none',
+      options:[
+        { value:'none',        label:'无（完整晶体）' },
+        { value:'thermal',     label:'热漫散射 TDS' },
+        { value:'point',       label:'点缺陷（黄氏散射）' },
+        { value:'dislocation', label:'位错应变场' },
+        { value:'fault',       label:'层错 / 孪晶纹' },
+        { value:'gb',          label:'小角晶界' },
+        { value:'nano',        label:'纳米晶（尺寸展宽）' },
+        { value:'precipitate', label:'析出相（第二相）' },
+      ]},
+    { key:'defectAmt', label:'缺陷强度', min:0, max:1, step:0.01, def:0.30, unit:'', dec:2 },
+    { key:'defectSize',label:'展宽尺度', min:0.005, max:0.15, step:0.005, def:0.030, unit:'nm⁻¹', dec:3 },
+  ]},
+  { title:'二次衍射', params:[
+    { key:'doubleDiffraction', label:'启用', type:'select', def:'off',
+      options:[
+        { value:'off', label:'关闭' },
+        { value:'on',  label:'开启' },
+      ]},
+    { key:'doubleAmt', label:'强度系数', min:0, max:1, step:0.01, def:0.35, unit:'', dec:2 },
+    { key:'doubleMax', label:'源斑上限', min:3, max:24, step:1, def:12, unit:'', dec:0 },
+    { key:'doubleSource', label:'源斑类型', type:'select', def:'matrix',
+      options:[
+        { value:'matrix', label:'仅原晶' },
+        { value:'all',    label:'原晶 + 孪晶' },
+      ]},
+  ]},
+  { title:'孪晶', params:[
+    { key:'twinMode', label:'孪晶', type:'select', def:'off',
+      options:[
+        { value:'off',    label:'关闭' },
+        { value:'mirror', label:'镜像孪晶 (hkl 面)' },
+        { value:'triple', label:'三重孪晶 (绕轴 120°/240°)' },
+      ]},
+    { key:'twinPlane', label:'孪晶面 hkl', type:'text', def:'1,1,1' },
+    { key:'twinAxis',  label:'旋转轴 uvw', type:'text', def:'1,1,1' },
+  ]},
+  { title:'菊池线', params:[
+    { key:'showKikuchi', label:'菊池线', type:'select', def:'off',
+      options:[{ value:'off', label:'关闭' }, { value:'on', label:'显示' }]},
+    { key:'kikuchiAlpha', label:'强度', min:0.05, max:1, step:0.01, def:0.35, unit:'', dec:2 },
+  ]},
+  { title:'高阶劳埃斑 (HOLZ)', params:[
+    { key:'showHOLZ', label:'HOLZ', type:'select', def:'off',
+      options:[{ value:'off', label:'关闭' }, { value:'on', label:'高亮显示' }]},
+    { key:'holzThreshold', label:'阈值', min:0.01, max:0.50, step:0.01, def:0.08, unit:'nm⁻¹', dec:2 },
+  ]},
+  { title:'结构因子与消光', params:[
+    { key:'latticeType', label:'点阵/基元', type:'select', def:'P',
+      options:[
+        { value:'P', label:'简单点阵 P' }, { value:'I', label:'体心 I' },
+        { value:'F', label:'面心 F' }, { value:'C', label:'底心 C' },
+        { value:'A', label:'底心 A' }, { value:'B', label:'底心 B' },
+        { value:'D', label:'金刚石型' }, { value:'NaCl', label:'NaCl 型' },
+        { value:'CsCl', label:'CsCl 型' }, { value:'ZnS', label:'闪锌矿 ZnS' },
+        { value:'HCP', label:'六方密堆 HCP' }, { value:'WZ', label:'纤锌矿 ZnO' },
+        { value:'PEROV', label:'钙钛矿 SrTiO₃' }, { value:'RUTILE', label:'金红石 TiO₂' },
+        { value:'L12', label:'L1₂ Cu₃Au' }, { value:'L10', label:'L1₀ CuAu' },
+        { value:'Q10', label:'十重准晶 (10f)' }, { value:'Q8', label:'八重准晶 (8f)' },
+        { value:'Q12', label:'十二重准晶 (12f)' }, { value:'Q5', label:'五重准晶 (10f 衍射)' },
+        { value:'custom', label:'自定义基元…' },
+      ]},
+    { key:'basisText', label:'基元', type:'text', def:'0,0,0,1' },
+  ]},
+  { title:'晶体取向（倾转）', params:[
+    { key:'tiltX', label:'绕 x 轴', min:-60, max:60, step:0.2, def:0, unit:'°', dec:1 },
+    { key:'tiltY', label:'绕 y 轴', min:-60, max:60, step:0.2, def:0, unit:'°', dec:1 },
+    { key:'tiltZ', label:'绕 z 轴', min:-180, max:180, step:0.5, def:0, unit:'°', dec:1 },
+  ]},
+  { title:'衍射与显示', params:[
+    { key:'maxIndex', label:'最高指数/环数', min:1, max:6, step:1, def:3, unit:'', dec:0 },
+    { key:'sigma',    label:'斑点展宽 σ', min:0.005, max:0.30, step:0.005, def:0.060, unit:'nm⁻¹', dec:3 },
+    { key:'viewR',    label:'视野半径', min:3, max:60, step:1, def:20, unit:'mm', dec:0 },
+    { key:'curvature',label:'球面曲率', min:0.01, max:1, step:0.01, def:0.05, unit:'×', dec:2 },
+  ]},
+];
+
+const state = {};
+const paramSpecs = {};
+state.zoneAxis = '';
+
+const STORAGE_KEY = 'elec-state-v1';
+
+let yaw = 0.72, pitch = 0.42;
+let basisInput = null;
+let activeBasis = [[0,0,0,1]];
+let maxF = 1;
+
+/* =========================================================
+   状态持久化
+   ========================================================= */
+function saveState(){
+  try {
+    const toSave = {};
+    for (const k in state){
+      const v = state[k];
+      if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean'){
+        toSave[k] = v;
+      }
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch(e){ /* ignore */ }
+}
+
+function loadState(){
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    const obj = JSON.parse(saved);
+    for (const k in obj){
+      if (typeof obj[k] === 'number' || typeof obj[k] === 'string' || typeof obj[k] === 'boolean'){
+        state[k] = obj[k];
+      }
+    }
+  } catch(e){ /* ignore */ }
+}
+
+let _saveTimer = null;
+function scheduleSaveState(){
+  if (_saveTimer) return;
+  _saveTimer = setTimeout(()=>{
+    _saveTimer = null;
+    saveState();
+  }, 500);
+}
+
+/* =========================================================
+   基元解析 / 结构因子
+   ========================================================= */
+function parseBasis(str){
+  const atoms = [];
+  if (typeof str === 'string'){
+    for (const part of str.split(';')){
+      const nums = part.split(',').map(s=>parseFloat(s));
+      if (nums.length >= 3 && nums.slice(0,3).every(n=>isFinite(n))){
+        const w = (nums.length >= 4 && isFinite(nums[3])) ? nums[3] : 1;
+        atoms.push([nums[0], nums[1], nums[2], w]);
+      }
+    }
+  }
+  return atoms.length ? atoms : [[0,0,0,1]];
+}
+
+function structureFactor(h,k,l,basis){
+  let re = 0, im = 0;
+  for (let i=0;i<basis.length;i++){
+    const x = basis[i][0], y = basis[i][1], z = basis[i][2], w = basis[i][3];
+    const ph = 2*Math.PI*(h*x + k*y + l*z);
+    re += w*Math.cos(ph);
+    im += w*Math.sin(ph);
+  }
+  return Math.hypot(re, im);
+}
+
+function isQuasi(){ return QUASI_KEYS.has(state.latticeType); }
+
+function updateBasis(){
+  const t = state.latticeType;
+  if (isQuasi()){ activeBasis = [[0,0,0,1]]; maxF = 1; return; }
+  if (t === 'custom') activeBasis = parseBasis(state.basisText);
+  else activeBasis = PRESETS[t].basis;
+  maxF = activeBasis.reduce((s,a)=>s+a[3], 0) || 1;
+}
+
+function onStructureChange(){
+  const t = state.latticeType;
+  if (!isQuasi() && t !== 'custom'){
+    state.basisText = PRESETS[t].basis.map(a=>a.join(',')).join('; ');
+    if (basisInput) basisInput.value = state.basisText;
+  }
+  updateBasis();
+}
+
+function setParamValue(key, v){
+  const spec = paramSpecs[key];
+  if (!spec) return;
+  state[key] = v;
+  const el = document.getElementById('in_'+key);
+  if (!el) return;
+  el.value = v;
+  const numEl = el.parentElement.querySelector('.valInput');
+  if (numEl) numEl.value = v.toFixed(spec.dec);
+}
+
+/* =========================================================
+   物理
+   ========================================================= */
+function wavelength(kV){
+  const U = kV * 1000;
+  return 1.22639 / Math.sqrt(U * (1 + 0.97845e-6 * U));
+}
+
+function recipLattice(a,b,c,alpha,beta,gamma){
+  const al = alpha*Math.PI/180, be = beta*Math.PI/180, ga = gamma*Math.PI/180;
+  const av = [a,0,0];
+  const bv = [b*Math.cos(ga), b*Math.sin(ga), 0];
+  const cx = c*Math.cos(be);
+  const cy = c*(Math.cos(al)-Math.cos(be)*Math.cos(ga))/Math.sin(ga);
+  const cz2 = c*c - cx*cx - cy*cy;
+  if (cz2 <= 1e-12) return null;
+  const cv = [cx, cy, Math.sqrt(cz2)];
+  const vol = V.dot(av, V.cross(bv,cv));
+  if (Math.abs(vol) < 1e-12) return null;
+  return {
+    aStar: V.mul(V.cross(bv,cv), 1/vol),
+    bStar: V.mul(V.cross(cv,av), 1/vol),
+    cStar: V.mul(V.cross(av,bv), 1/vol),
+    vol
+  };
+}
+
+function matMul(A,B){
+  const C = [[0,0,0],[0,0,0],[0,0,0]];
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++){
+    let s=0; for(let k=0;k<3;k++) s += A[i][k]*B[k][j];
+    C[i][j]=s;
+  }
+  return C;
+}
+
+function rotMatrix(tx,ty,tz){
+  const X=tx*Math.PI/180, Y=ty*Math.PI/180, Z=tz*Math.PI/180;
+  const cx=Math.cos(X), sx=Math.sin(X);
+  const cy=Math.cos(Y), sy=Math.sin(Y);
+  const cz=Math.cos(Z), sz=Math.sin(Z);
+  const Rx=[[1,0,0],[0,cx,-sx],[0,sx,cx]];
+  const Ry=[[cy,0,sy],[0,1,0],[-sy,0,cy]];
+  const Rz=[[cz,-sz,0],[sz,cz,0],[0,0,1]];
+  return matMul(Rz, matMul(Ry, Rx));
+}
+
+function applyMat(R,g){
+  return [
+    R[0][0]*g[0]+R[0][1]*g[1]+R[0][2]*g[2],
+    R[1][0]*g[0]+R[1][1]*g[1]+R[1][2]*g[2],
+    R[2][0]*g[0]+R[2][1]*g[1]+R[2][2]*g[2],
+  ];
+}
+
+function rotationMatrix(axis, angle){
+  const [u, v, w] = axis;
+  const len = Math.sqrt(u*u + v*v + w*w);
+  if (len < 1e-9) return null;
+  const nx = u/len, ny = v/len, nz = w/len;
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const t = 1 - c;
+  return [
+    [t*nx*nx + c,     t*nx*ny - s*nz, t*nx*nz + s*ny],
+    [t*nx*ny + s*nz,  t*ny*ny + c,    t*ny*nz - s*nx],
+    [t*nx*nz - s*ny,  t*ny*nz + s*nx, t*nz*nz + c]
+  ];
+}
+
+function rotationFromTo(from, to){
+  const fLen = Math.hypot(from[0], from[1], from[2]);
+  const tLen = Math.hypot(to[0], to[1], to[2]);
+  if (fLen < 1e-12 || tLen < 1e-12) return null;
+  const f = [from[0]/fLen, from[1]/fLen, from[2]/fLen];
+  const t = [to[0]/tLen, to[1]/tLen, to[2]/tLen];
+  const cosA = f[0]*t[0] + f[1]*t[1] + f[2]*t[2];
+  const axis = [
+    f[1]*t[2] - f[2]*t[1],
+    f[2]*t[0] - f[0]*t[2],
+    f[0]*t[1] - f[1]*t[0],
+  ];
+  const sinA = Math.hypot(axis[0], axis[1], axis[2]);
+  if (sinA < 1e-9){
+    if (cosA > 0) return [[1,0,0],[0,1,0],[0,0,1]];
+    let perp;
+    if (Math.abs(f[0]) < 0.9) perp = [1, 0, 0];
+    else perp = [0, 1, 0];
+    const axis2 = [
+      f[1]*perp[2] - f[2]*perp[1],
+      f[2]*perp[0] - f[0]*perp[2],
+      f[0]*perp[1] - f[1]*perp[0],
+    ];
+    return rotationMatrix(axis2, Math.PI);
+  }
+  const angle = Math.atan2(sinA, cosA);
+  return rotationMatrix(axis, angle);
+}
+
+function computeZoneAxisMatrix(){
+  const str = state.zoneAxis;
+  if (!str || !str.trim()) return null;
+  const uvw = parseHKL(str);
+  if (!uvw) return null;
+  const [u, v, w] = uvw;
+  if (u===0 && v===0 && w===0) return null;
+  const al = state.alpha*Math.PI/180, be = state.beta*Math.PI/180, ga = state.gamma*Math.PI/180;
+  const a = state.a, b = state.b, c = state.c;
+  const av = [a, 0, 0];
+  const bv = [b*Math.cos(ga), b*Math.sin(ga), 0];
+  const cx = c*Math.cos(be);
+  const cy = c*(Math.cos(al)-Math.cos(be)*Math.cos(ga))/Math.sin(ga);
+  const cz2 = c*c - cx*cx - cy*cy;
+  if (cz2 <= 1e-12) return null;
+  const cv = [cx, cy, Math.sqrt(cz2)];
+  const n = [
+    u*av[0] + v*bv[0] + w*cv[0],
+    u*av[1] + v*bv[1] + w*cv[1],
+    u*av[2] + v*bv[2] + w*cv[2],
+  ];
+  const nl = V.len(n);
+  if (nl < 1e-12) return null;
+  return rotationFromTo(n, [0,0,1]);
+}
+
+function getOrientationMatrix(){
+  const R_tilt = rotMatrix(state.tiltX, state.tiltY, state.tiltZ);
+  const R_zone = computeZoneAxisMatrix();
+  if (!R_zone) return R_tilt;
+  return matMul(R_tilt, R_zone);
+}
+
+/* =========================================================
+   ★ 修复 #1：parseHKL 支持紧凑写法 "1-11"
+   ========================================================= */
+function parseHKL(str){
+  if (typeof str !== 'string') return null;
+  const s = str.trim().replace(/[()\[\]]/g, '');
+  if (!s) return null;
+  let parts;
+  if (/[,\s]/.test(s)){
+    parts = s.split(/[,\s]+/).filter(x=>x.length>0);
+  } else {
+    // 紧凑表示：每字符一位数字，"-"/"−" 只影响其后的单个数字
+    parts = [];
+    let i = 0;
+    while (i < s.length){
+      let neg = false;
+      if (s[i] === '-' || s[i] === '−'){ neg = true; i++; }
+      if (i >= s.length) return null;
+      if (!/\d/.test(s[i])) return null;
+      parts.push(neg ? -parseInt(s[i], 10) : parseInt(s[i], 10));
+      i++;
+    }
+  }
+  if (parts.length !== 3) return null;
+  const nums = parts.map(p=>parseInt(p,10));
+  if (nums.some(n=>!isFinite(n))) return null;
+  return nums;
+}
+
+function twinMatrix(lat, h, k, l){
+  const g = [
+    h*lat.aStar[0] + k*lat.bStar[0] + l*lat.cStar[0],
+    h*lat.aStar[1] + k*lat.bStar[1] + l*lat.cStar[1],
+    h*lat.aStar[2] + k*lat.bStar[2] + l*lat.cStar[2],
+  ];
+  const g2 = V.dot(g,g);
+  if (g2 < 1e-12) return null;
+  const f = 2/g2;
+  return [
+    [1 - f*g[0]*g[0],   -f*g[0]*g[1],     -f*g[0]*g[2]],
+    [  -f*g[1]*g[0],  1 - f*g[1]*g[1],    -f*g[1]*g[2]],
+    [  -f*g[2]*g[0],    -f*g[2]*g[1],  1 - f*g[2]*g[2]],
+  ];
+}
+
+function getTwinTransforms(lat){
+  if (state.twinMode === 'off') return [];
+  if (state.sampleType !== 'single') return [];
+  if (isQuasi()) return [];
+  if (state.twinMode === 'mirror'){
+    const hkl = parseHKL(state.twinPlane);
+    if (!hkl) return [];
+    const M = twinMatrix(lat, hkl[0], hkl[1], hkl[2]);
+    return M ? [{ M, source: 'twin', label: '孪晶' }] : [];
+  }
+  if (state.twinMode === 'triple'){
+    const uvw = parseHKL(state.twinAxis);
+    if (!uvw) return [];
+    const R120 = rotationMatrix(uvw, 2*Math.PI/3);
+    const R240 = rotationMatrix(uvw, 4*Math.PI/3);
+    const result = [];
+    if (R120) result.push({ M: R120, source: 'twin1', label: '孪晶 120°' });
+    if (R240) result.push({ M: R240, source: 'twin2', label: '孪晶 240°' });
+    return result;
+  }
+  return [];
+}
+
+function generateQuasiReflections(lat, n, g0, J){
+  const PHI = (1 + Math.sqrt(5)) / 2;
+  const reflections = [];
+  let gmax = 0;
+  const LAYERS = 2, d = g0 * 0.5;
+  for (let j = 1; j <= J; j++){
+    const r = g0 * Math.pow(PHI, j-1);
+    if (r > 30) break;
+    const offset = (j % 2 === 0) ? Math.PI/n : 0;
+    for (let k = 0; k < n; k++){
+      const angle = 2*Math.PI*k/n + offset;
+      const x = r * Math.cos(angle);
+      const y = r * Math.sin(angle);
+      for (let lz = -LAYERS; lz <= LAYERS; lz++){
+        const g = [x, y, lz * d];
+        const gm = V.len(g);
+        if (gm > gmax) gmax = gm;
+        reflections.push({ h: j, k: k, l: lz, g, gm, F: 1, Fn: 1, source: 'matrix' });
+      }
+    }
+  }
+  return { reflections, gmax: Math.max(gmax, 1) };
+}
+
+function computeReflections(lam, lat, basis, fMax){
+  const R = getOrientationMatrix();
+  const N = Math.round(state.maxIndex);
+  const reflections = [];
+  let gmax = 0;
+  const twinTransforms = getTwinTransforms(lat);
+  const holzTh = state.holzThreshold;
+
+  const addRef = (h,k,l, g_final, source) => {
+    const gm = V.len(g_final);
+    if (gm > gmax) gmax = gm;
+    const F = structureFactor(h,k,l,basis);
+    const Fn = F / fMax;
+    const s = lam*gm*gm/2 + g_final[2];
+    const isHOLZ = Math.abs(g_final[2]) > holzTh;
+    reflections.push({h,k,l, g:g_final, gm, F, Fn, s, source, isHOLZ});
+  };
+
+  if (isQuasi()){
+    const n = PRESETS[state.latticeType].quasi.n;
+    const g0 = 1 / state.a;
+    const J = Math.max(3, Math.round(state.maxIndex));
+    const { reflections: quasiRefs } = generateQuasiReflections(lat, n, g0, J);
+    for (const qr of quasiRefs){
+      const g_rot = applyMat(R, qr.g);
+      addRef(qr.h, qr.k, qr.l, g_rot, 'matrix');
+      for (const tm of twinTransforms){
+        const g_twin = applyMat(R, applyMat(tm.M, qr.g));
+        addRef(qr.h, qr.k, qr.l, g_twin, tm.source);
+      }
+    }
+    return { reflections, gmax: Math.max(gmax, 1), hasTwin: false, isQuasi: true };
+  }
+
+  for (let h=-N; h<=N; h++)
+  for (let k=-N; k<=N; k++)
+  for (let l=-N; l<=N; l++){
+    if (h===0 && k===0 && l===0) continue;
+    const g_lat = [
+      h*lat.aStar[0] + k*lat.bStar[0] + l*lat.cStar[0],
+      h*lat.aStar[1] + k*lat.bStar[1] + l*lat.cStar[1],
+      h*lat.aStar[2] + k*lat.bStar[2] + l*lat.cStar[2],
+    ];
+    const g_rot = applyMat(R, g_lat);
+    addRef(h, k, l, g_rot, 'matrix');
+    for (const tm of twinTransforms){
+      const g_twin = applyMat(R, applyMat(tm.M, g_lat));
+      addRef(h, k, l, g_twin, tm.source);
+    }
+  }
+
+  return { reflections, gmax: Math.max(gmax, 1), hasTwin: twinTransforms.length > 0, isQuasi: false };
+}
+
+function computeRings(lam, lat, basis, fMax){
+  const N = Math.round(state.maxIndex);
+  const ringMap = new Map();
+  let gmax = 0;
+  for (let h=-N; h<=N; h++)
+  for (let k=-N; k<=N; k++)
+  for (let l=-N; l<=N; l++){
+    if (h===0 && k===0 && l===0) continue;
+    if (h < 0 || (h===0 && k<0) || (h===0 && k===0 && l<0)) continue;
+    const g = [
+      h*lat.aStar[0] + k*lat.bStar[0] + l*lat.cStar[0],
+      h*lat.aStar[1] + k*lat.bStar[1] + l*lat.cStar[1],
+      h*lat.aStar[2] + k*lat.bStar[2] + l*lat.cStar[2],
+    ];
+    const gm = V.len(g);
+    if (gm > gmax) gmax = gm;
+    const F = structureFactor(h,k,l,basis);
+    const Fn = F / fMax;
+    if (Fn < 1e-4) continue;
+    let signMult = 1;
+    if (h !== 0) signMult *= 2;
+    if (k !== 0) signMult *= 2;
+    if (l !== 0) signMult *= 2;
+    const intensity = Fn*Fn * signMult;
+    const key = gm.toFixed(6);
+    if (!ringMap.has(key)) ringMap.set(key, { gm, intensity: 0 });
+    ringMap.get(key).intensity += intensity;
+  }
+  const rings = [];
+  let maxI = 0;
+  for (const {gm, intensity} of ringMap.values()){
+    if (intensity < 1e-6) continue;
+    rings.push({ gm, intensity });
+    if (intensity > maxI) maxI = intensity;
+  }
+  for (const r of rings) r.I = maxI > 0 ? r.intensity / maxI : 0;
+  rings.sort((a,b)=>a.gm - b.gm);
+  return { rings, gmax: Math.max(gmax, 1) };
+}
+
+function computeAmorphousRings(lam){
+  const d0  = state.amorphousD;
+  const disp = state.amorphousDisp;
+  const nRings = Math.round(state.amorphousRings);
+  const q1 = 2*Math.PI / d0;
+  const ratios = [1.00, 1.70, 2.00, 2.50, 2.95, 3.35];
+  const amps   = [1.00, 0.55, 0.30, 0.15, 0.08, 0.04];
+  const relW   = [0.10, 0.16, 0.22, 0.28, 0.34, 0.40];
+  const rings = [];
+  const L = state.camLen;
+  for (let j = 0; j < nRings; j++){
+    const q = q1 * ratios[j];
+    const sinT = lam * q / 2;
+    if (sinT >= 0.999) continue;
+    const theta = Math.asin(sinT);
+    const R = L * Math.tan(2*theta);
+    const wq = q * relW[j] * (0.35 + disp * 1.6);
+    const dq = q * 1e-3;
+    const R1 = L * Math.tan(2*Math.asin(Math.max(1e-9, Math.min(0.999, lam*(q+dq)/2))));
+    const R0 = L * Math.tan(2*Math.asin(Math.max(1e-9, Math.min(0.999, lam*Math.max(1e-9,q-dq)/2))));
+    const dRdq = Math.abs(R1 - R0) / (2*dq);
+    let wR = dRdq * wq;
+    if (!isFinite(wR) || wR < 0.2) wR = Math.max(0.4, R * 0.02);
+    const I = amps[j] * Math.exp(-j * 0.35) * (1.0 - 0.5*disp);
+    rings.push({ q, R, wR, I, j });
+  }
+  return rings;
+}
+
+function applyDefects(spots, lat, lam){
+  const dt = state.defectType;
+  if (!dt || dt === 'none') return;
+  if (state.sampleType !== 'single') return;
+  const amt = state.defectAmt;
+  const R   = state.viewR;
+  const sz  = state.defectSize;
+
+  switch(dt){
+    case 'thermal': {
+      for (const sp of spots){
+        sp.diffuse = { I: sp.I * amt * 0.55, width: R * (0.025 + 0.07*amt) + sz * 20 };
+      }
+      break;
+    }
+    case 'point': {
+      for (const sp of spots){
+        sp.diffuse = { I: sp.I * amt * 0.40, width: R * (0.018 + 0.05*amt) + sz * 15 };
+      }
+      const n = Math.round(60 * amt);
+      for (let i=0; i<n; i++){
+        const th = Math.random() * 2 * Math.PI;
+        const r = Math.pow(Math.random(), 1.7) * R * 0.45;
+        const falloff = Math.exp(-(r*r) / (R*R*0.08));
+        spots.push({
+          X: r*Math.cos(th), Y: r*Math.sin(th),
+          I: amt * 0.22 * falloff,
+          source: 'diffuse', gm: 0, Fn: 0.1, isHOLZ: false,
+        });
+      }
+      break;
+    }
+    case 'dislocation': {
+      for (const sp of spots){
+        const len = Math.hypot(sp.X, sp.Y);
+        if (len < 0.05) continue;
+        sp.streak = {
+          dx: sp.X / len, dy: sp.Y / len,
+          length: R * (0.04 + 0.12*amt),
+          width: 0.7 + amt * 2.4,
+        };
+      }
+      break;
+    }
+    case 'fault': {
+      const hkl = parseHKL(state.twinAxis) || [1,1,1];
+      const g1 = [
+        hkl[0]*lat.aStar[0] + hkl[1]*lat.bStar[0] + hkl[2]*lat.cStar[0],
+        hkl[0]*lat.aStar[1] + hkl[1]*lat.bStar[1] + hkl[2]*lat.cStar[1],
+      ];
+      let dx = g1[0], dy = g1[1];
+      const gl = Math.hypot(dx, dy);
+      if (gl < 1e-6){ dx = 1; dy = 0; } else { dx /= gl; dy /= gl; }
+      for (const sp of spots){
+        sp.streak = { dx, dy, length: R * (0.035 + 0.11*amt), width: 0.6 + amt * 1.9 };
+      }
+      break;
+    }
+    case 'gb': {
+      for (const sp of spots){
+        const r = Math.hypot(sp.X, sp.Y);
+        if (r < 0.08) continue;
+        sp.arc = { r, a0: -Math.atan2(sp.Y, sp.X), halfAngle: 0.02 + 0.16*amt };
+      }
+      break;
+    }
+    case 'nano': {
+      const D = 2 + 18*(1 - amt);
+      const dq = 2*Math.PI / D;
+      const dX = state.camLen * dq * lam;
+      for (const sp of spots) sp.broaden = dX;
+      break;
+    }
+    case 'precipitate': {
+      const a2 = Math.max(0.10, state.a / 2.5);
+      const LIM = 3;
+      for (let h=-LIM; h<=LIM; h++)
+      for (let k=-LIM; k<=LIM; k++)
+      for (let l=-LIM; l<=LIM; l++){
+        if (h===0 && k===0 && l===0) continue;
+        const gx = h/a2, gy = k/a2, gz = l/a2;
+        const gm = Math.hypot(gx, gy, gz);
+        if (gm > 30) continue;
+        const kz = 1/lam + gz;
+        if (kz <= 0) continue;
+        const X = state.camLen * gx / kz;
+        const Y = state.camLen * gy / kz;
+        if (Math.hypot(X, Y) > R * 2.2) continue;
+        spots.push({
+          X, Y,
+          I: amt * 0.28 * Math.exp(-gm*gm / 60),
+          source: 'precipitate', gm, Fn: 0.2, isHOLZ: false,
+        });
+      }
+      break;
+    }
+  }
+}
+
+/* =========================================================
+   ★ 修改 #D：二次衍射源斑类型可选
+   ========================================================= */
+function addDoubleDiffraction(spots, lam, lat, basis, fMax){
+  const amt = state.doubleAmt;
+  if (amt <= 0) return;
+  const maxSources = Math.round(state.doubleMax);
+
+  const allowed = state.doubleSource === 'all'
+    ? ['matrix', 'twin', 'twin1', 'twin2']
+    : ['matrix'];
+  const sources = spots
+    .filter(s => allowed.includes(s.source))
+    .sort((a, b) => b.I - a.I)
+    .slice(0, maxSources);
+  if (sources.length === 0) return;
+
+  const overlapTol = Math.max(0.05, state.viewR * 0.008);
+  const overlapTol2 = overlapTol * overlapTol;
+  const newDoubles = [];
+
+  for (let i = 0; i < sources.length; i++){
+    const s1 = sources[i];
+    for (let j = i; j < sources.length; j++){
+      const s2 = sources[j];
+      const gd = [
+        s1.g[0] + s2.g[0],
+        s1.g[1] + s2.g[1],
+        s1.g[2] + s2.g[2],
+      ];
+      const gmL = V.len(gd);
+      if (gmL < 1e-6) continue;
+      const kz = 1/lam + gd[2];
+      if (kz <= 0.01) continue;
+      const X = state.camLen * gd[0] / kz;
+      const Y = state.camLen * gd[1] / kz;
+      if (Math.hypot(X, Y) > state.viewR * 1.6) continue;
+
+      let Id = s1.I * s2.I * amt;
+      if (i === j) Id *= 0.5;
+      if (Id < 0.004) continue;
+
+      const hh = (s1.h || 0) + (s2.h || 0);
+      const kk = (s1.k || 0) + (s2.k || 0);
+      const ll = (s1.l || 0) + (s2.l || 0);
+      const F = structureFactor(hh, kk, ll, basis);
+      const Fn = F / fMax;
+
+      if (Fn > 1e-3){
+        let best = null, bestD = Infinity;
+        for (const sp of spots){
+          const dx = sp.X - X, dy = sp.Y - Y;
+          const d2 = dx*dx + dy*dy;
+          if (d2 < overlapTol2 && d2 < bestD){ best = sp; bestD = d2; }
+        }
+        if (best){ best.I += Id * 0.25; continue; }
+      }
+
+      let dup = false;
+      for (const nd of newDoubles){
+        const dx = nd.X - X, dy = nd.Y - Y;
+        if (dx*dx + dy*dy < overlapTol2){ nd.I += Id * 0.5; dup = true; break; }
+      }
+      if (dup) continue;
+
+      newDoubles.push({
+        X, Y,
+        I: Math.min(0.95, Id),
+        g: gd,
+        gm: gmL,
+        h: hh, k: kk, l: ll,
+        source: 'double',
+        Fn: 0.1,
+        isHOLZ: Math.abs(gd[2]) > state.holzThreshold,
+      });
+    }
+  }
+  for (const nd of newDoubles) spots.push(nd);
+}
+
+function kikuchiCurve(g, lam, sign, camLen){
+  const gm = V.len(g);
+  if (gm < 1e-6) return [];
+  const a = sign * lam * gm / 2;
+  if (Math.abs(a) >= 0.999) return [];
+  const gh = V.mul(g, 1/gm);
+  let u;
+  if (Math.abs(gh[0]) < 0.9) u = V.cross(gh, [1,0,0]);
+  else u = V.cross(gh, [0,1,0]);
+  const ulen = V.len(u);
+  if (ulen < 1e-9) return [];
+  u = V.mul(u, 1/ulen);
+  const v = V.cross(gh, u);
+  const r = Math.sqrt(Math.max(0, 1 - a*a));
+  const points = [];
+  let gap = false;
+  const N = 96;
+  for (let i=0; i<=N; i++){
+    const phi = i/N * Math.PI*2;
+    const n = [
+      gh[0]*a + u[0]*r*Math.cos(phi) + v[0]*r*Math.sin(phi),
+      gh[1]*a + u[1]*r*Math.cos(phi) + v[1]*r*Math.sin(phi),
+      gh[2]*a + u[2]*r*Math.cos(phi) + v[2]*r*Math.sin(phi),
+    ];
+    if (n[2] < 0.03){
+      if (!gap){ points.push(null); gap = true; }
+      continue;
+    }
+    gap = false;
+    points.push([camLen * n[0] / n[2], camLen * n[1] / n[2]]);
+  }
+  return points;
+}
+
+let W3=600,H3=400, WP=600,HP=400;
+
+function fitCanvases(){
+  const dpr = window.devicePixelRatio || 1;
+  const c3 = document.getElementById('canvas3d');
+  const cp = document.getElementById('canvasPattern');
+  let r = c3.getBoundingClientRect();
+  c3.width  = Math.max(1, Math.round(r.width  * dpr));
+  c3.height = Math.max(1, Math.round(r.height * dpr));
+  c3.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  W3 = r.width; H3 = r.height;
+  r = cp.getBoundingClientRect();
+  cp.width  = Math.max(1, Math.round(r.width  * dpr));
+  cp.height = Math.max(1, Math.round(r.height * dpr));
+  cp.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  WP = r.width; HP = r.height;
+}
+
+function project(p, scale, cx, cy){
+  const ca=Math.cos(yaw), sa=Math.sin(yaw);
+  const cb=Math.cos(pitch), sb=Math.sin(pitch);
+  const x1 =  p[0]*ca + p[1]*sa;
+  const y1 = -p[0]*sa + p[1]*ca;
+  const z1 =  p[2];
+  const y2 = y1*cb - z1*sb;
+  const z2 = y1*sb + z1*cb;
+  const d = 1 / (1 + y2*0.022);
+  return { x: cx + x1*scale*d, y: cy - z2*scale*d, depth: y2 };
+}
+
+function pointColors(source, isHOLZ, I, holzOn){
+  const a = Math.min(1, 0.15 + 0.85*I);
+  let haloInner, core;
+  if (isHOLZ && holzOn){ haloInner = [255, 210, 150]; core = [255, 245, 215]; }
+  else if (source === 'twin'){ haloInner = [255, 170, 235]; core = [255, 225, 250]; }
+  else if (source === 'twin1'){ haloInner = [255, 220, 130]; core = [255, 245, 210]; }
+  else if (source === 'twin2'){ haloInner = [190, 150, 255]; core = [225, 210, 255]; }
+  else if (source === 'diffuse'){ haloInner = [140, 180, 255]; core = [200, 220, 255]; }
+  else if (source === 'precipitate'){ haloInner = [170, 255, 200]; core = [225, 255, 230]; }
+  else if (source === 'double'){ haloInner = [220, 170, 255]; core = [240, 215, 255]; }
+  else { haloInner = [140, 225, 255]; core = [225, 248, 255]; }
+  return {
+    halo: `rgba(60,150,230,${a*0.30})`,
+    haloInner: `rgba(${haloInner[0]},${haloInner[1]},${haloInner[2]},${a*0.80})`,
+    core: `rgba(${core[0]},${core[1]},${core[2]},${a})`
+  };
+}
+
+function drawDiffuseSpot(ctx, x, y, diffuse, scale){
+  const rad = Math.max(2, diffuse.width * scale);
+  const I = Math.max(0, diffuse.I);
+  if (I < 0.003 || rad < 1) return;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+  g.addColorStop(0,    `rgba(150,205,255,${Math.min(0.18, I*0.22)})`);
+  g.addColorStop(0.35, `rgba(110,170,235,${Math.min(0.10, I*0.10)})`);
+  g.addColorStop(0.75, `rgba(60,120,200,${Math.min(0.05, I*0.05)})`);
+  g.addColorStop(1,    'rgba(20,60,120,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI*2); ctx.fill();
+}
+
+function drawStreak(ctx, x, y, streak, I, scale){
+  const len = streak.length * scale;
+  if (len < 1 || I < 0.01) return;
+  const dx = streak.dx, dy = -streak.dy;
+  const x2 = x + dx * len;
+  const y2 = y + dy * len;
+  const g = ctx.createLinearGradient(x, y, x2, y2);
+  const a = Math.min(0.85, 0.12 + I * 0.7);
+  g.addColorStop(0,   `rgba(225,248,255,${a})`);
+  g.addColorStop(0.3, `rgba(150,220,255,${a*0.35})`);
+  g.addColorStop(1,   'rgba(90,160,230,0)');
+  ctx.strokeStyle = g;
+  ctx.lineWidth = Math.max(1, streak.width);
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke();
+}
+
+function drawArcSpot(ctx, cx, cy, arc, I, scale){
+  const r = arc.r * scale;
+  if (r < 1 || I < 0.02) return;
+  const a = Math.min(0.9, 0.15 + I * 0.75);
+  ctx.strokeStyle = `rgba(225,248,255,${a})`;
+  ctx.lineWidth = Math.max(1.5, 1.5 + I * 3);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, arc.a0 - arc.halfAngle, arc.a0 + arc.halfAngle);
+  ctx.stroke();
+}
+
+function drawSinglePattern(spots, reflections, lam, extinct, hasTwin, isQuasi, defectInfo, dblInfo){
+  const c = document.getElementById('canvasPattern');
+  const ctx = c.getContext('2d');
+  const W = WP, H = HP;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#04070b';
+  ctx.fillRect(0,0,W,H);
+  const cx = W/2, cy = H/2;
+  const scale = Math.min(W,H) * 0.44 / state.viewR;
+  const holzOn = state.showHOLZ === 'on';
+
+  ctx.strokeStyle = 'rgba(53,208,186,0.06)';
+  ctx.lineWidth = 1;
+  for (let r = state.viewR/8; r < state.viewR; r += state.viewR/8){
+    ctx.beginPath(); ctx.arc(cx, cy, r*scale, 0, Math.PI*2); ctx.stroke();
+  }
+
+  if (state.showKikuchi === 'on' && state.sampleType === 'single' && !isQuasi){
+    const alpha = state.kikuchiAlpha;
+    for (const ref of reflections){
+      if (ref.Fn < 1e-4) continue;
+      if (ref.gm < 0.01) continue;
+      const I = alpha * ref.Fn * ref.Fn;
+      if (I < 0.008) continue;
+      for (const sign of [-1, 1]){
+        const pts = kikuchiCurve(ref.g, lam, sign, state.camLen);
+        if (pts.length < 2) continue;
+        ctx.beginPath();
+        let started = false, lastX = 0, lastY = 0, jumped = false;
+        for (const pt of pts){
+          if (pt === null){ started = false; jumped = true; continue; }
+          const px = cx + pt[0] * scale;
+          const py = cy - pt[1] * scale;
+          if (px < -300 || px > W+300 || py < -300 || py > H+300){ started = false; continue; }
+          if (!started){ ctx.moveTo(px, py); started = true; }
+          else {
+            const dx = px - lastX, dy = py - lastY;
+            if (dx*dx + dy*dy > 400*400 && !jumped) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          lastX = px; lastY = py; jumped = false;
+        }
+        const isTwin = ref.source === 'twin' || ref.source === 'twin1' || ref.source === 'twin2';
+        if (sign > 0){
+          ctx.strokeStyle = isTwin
+            ? `rgba(240,180,235,${Math.min(0.85, I*0.85)})`
+            : `rgba(180,240,255,${Math.min(1, I*0.95)})`;
+          ctx.lineWidth = 1.1;
+        } else {
+          ctx.strokeStyle = isTwin
+            ? `rgba(140,90,130,${Math.min(0.65, I*0.5)})`
+            : `rgba(110,135,160,${Math.min(0.8, I*0.55)})`;
+          ctx.lineWidth = 1;
+        }
+        ctx.stroke();
+      }
+    }
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const sp of spots){
+    if (!sp.diffuse) continue;
+    const x = cx + sp.X*scale;
+    const y = cy - sp.Y*scale;
+    if (x < -200 || x > W+200 || y < -200 || y > H+200) continue;
+    drawDiffuseSpot(ctx, x, y, sp.diffuse, scale);
+  }
+  ctx.restore();
+
+  for (const sp of spots){
+    if (!sp.streak) continue;
+    const x = cx + sp.X*scale;
+    const y = cy - sp.Y*scale;
+    if (x < -250 || x > W+250 || y < -250 || y > H+250) continue;
+    drawStreak(ctx, x, y, sp.streak, sp.I, scale);
+  }
+  for (const sp of spots){
+    if (!sp.arc) continue;
+    drawArcSpot(ctx, cx, cy, sp.arc, sp.I, scale);
+  }
+
+  const drawSpot = (x, y, I, col, central, extraR) => {
+    extraR = extraR || 0;
+    const rad = (central ? 3.2 : 1.7) + 4.2*Math.sqrt(I) + extraR;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, rad*3.6);
+    g.addColorStop(0, col.core);
+    g.addColorStop(0.22, col.haloInner);
+    g.addColorStop(0.55, col.halo);
+    g.addColorStop(1, 'rgba(20,60,120,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, rad*3.6, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = col.core;
+    ctx.beginPath(); ctx.arc(x, y, rad*0.72, 0, Math.PI*2); ctx.fill();
+  };
+
+  const sorted = [...spots].sort((p,q)=>p.I-q.I);
+  for (const sp of sorted){
+    const x = cx + sp.X*scale;
+    const y = cy - sp.Y*scale;
+    if (x < -80 || x > W+80 || y < -80 || y > H+80) continue;
+    const extraR = sp.broaden ? sp.broaden * scale : 0;
+    drawSpot(x, y, sp.I, pointColors(sp.source, sp.isHOLZ, sp.I, holzOn), false, extraR);
+  }
+
+  drawSpot(cx, cy, 1, {
+    core:'rgba(255,255,255,0.98)',
+    haloInner:'rgba(190,245,255,0.85)',
+    halo:'rgba(100,200,255,0.30)'
+  }, true);
+
+  const barMM = niceNumber(state.viewR/3.2);
+  const barPx = barMM * scale;
+  const bx = 18, by = H - 24;
+  ctx.strokeStyle = 'rgba(215,224,234,0.55)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(bx, by); ctx.lineTo(bx+barPx, by);
+  ctx.moveTo(bx, by-4.5); ctx.lineTo(bx, by+4.5);
+  ctx.moveTo(bx+barPx, by-4.5); ctx.lineTo(bx+barPx, by+4.5);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(215,224,234,0.7)';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(barMM.toFixed(barMM < 1 ? 2 : 0) + ' mm', bx + barPx/2, by - 9);
+  ctx.textAlign = 'left';
+
+  const legendItems = [];
+  legendItems.push({ color:'rgba(225,248,255,0.95)', label: isQuasi ? '准晶' : '原晶' });
+  if (hasTwin){
+    if (state.twinMode === 'triple'){
+      legendItems.push({ color:'rgba(255,245,210,0.95)', label:'孪晶 120°' });
+      legendItems.push({ color:'rgba(225,210,255,0.95)', label:'孪晶 240°' });
+    } else {
+      legendItems.push({ color:'rgba(255,225,250,0.95)', label:'孪晶' });
+    }
+  }
+  if (holzOn) legendItems.push({ color:'rgba(255,245,215,0.95)', label:'HOLZ' });
+  if (dblInfo && dblInfo.active) legendItems.push({ color:'rgba(230,190,255,0.95)', label:'二次衍射' });
+  if (defectInfo && defectInfo.active) legendItems.push({ color:'rgba(255,175,120,0.95)', label:'缺陷 ' + defectInfo.label });
+
+  const lh = 18, lw = 200;
+  const lx0 = W - lw - 12;
+  const ly0 = H - 18 - legendItems.length*lh - 6;
+  ctx.fillStyle = 'rgba(5,10,16,0.72)';
+  ctx.strokeStyle = 'rgba(60,90,120,0.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(lx0, ly0, lw, legendItems.length*lh + 6, 6);
+  else ctx.rect(lx0, ly0, lw, legendItems.length*lh + 6);
+  ctx.fill(); ctx.stroke();
+  ctx.font = '10.5px ui-monospace, Menlo, monospace';
+  legendItems.forEach((item, i)=>{
+    const yy = ly0 + 6 + i*lh + 8;
+    ctx.fillStyle = item.color;
+    ctx.beginPath(); ctx.arc(lx0 + 14, yy, 3.2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(170,190,210,0.95)';
+    ctx.fillText(item.label, lx0 + 24, yy + 3.5);
+  });
+
+  const structName = isQuasi
+    ? PRESETS[state.latticeType].name
+    : (state.latticeType === 'custom' ? '自定义基元' : PRESETS[state.latticeType].name);
+
+  const nMatrix = spots.filter(s=>s.source==='matrix').length;
+  const nTwin1 = spots.filter(s=>s.source==='twin' || s.source==='twin1').length;
+  const nTwin2 = spots.filter(s=>s.source==='twin2').length;
+  const nHOLZ = spots.filter(s=>s.isHOLZ).length;
+  const nDef = spots.filter(s=>s.source==='diffuse' || s.source==='precipitate').length;
+  const nDbl = spots.filter(s=>s.source==='double').length;
+
+  ctx.fillStyle = 'rgba(125,141,158,0.9)';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.fillText(`λ = ${(lam*1000).toFixed(2)} pm`, 18, 20);
+  ctx.fillText(`Lλ = ${(state.camLen*lam).toFixed(2)} mm·nm`, 18, 36);
+  ctx.fillText(`${structName}`, 18, 52);
+  if (state.zoneAxis && state.zoneAxis.trim()){
+    ctx.fillStyle = 'rgba(53,208,186,0.9)';
+    ctx.fillText(`带轴 B = [${state.zoneAxis.trim()}]`, 18, 68);
+  } else {
+    ctx.fillStyle = 'rgba(53,208,186,0.85)';
+  }
+  if (isQuasi){
+    ctx.fillText(`可见斑点 ${spots.length}（准晶）`, 18, 84);
+  } else {
+    ctx.fillText(`可见斑点 ${spots.length}（原晶 ${nMatrix}${hasTwin ? `，孪晶 ${nTwin1+nTwin2}` : ''}）`, 18, 84);
+    ctx.fillStyle = 'rgba(242,165,74,0.85)';
+    ctx.fillText(`系统消光 ${extinct}${holzOn ? ` · HOLZ ${nHOLZ}` : ''}`, 18, 100);
+    if (nDbl > 0){
+      ctx.fillStyle = 'rgba(226,180,255,0.9)';
+      ctx.fillText(`二次衍射 ${nDbl}`, 18, 116);
+    }
+    if (defectInfo && defectInfo.active){
+      ctx.fillStyle = 'rgba(255,160,110,0.9)';
+      ctx.fillText(`缺陷 ${defectInfo.label}${nDef ? ` · 额外 ${nDef}` : ''}`, 18, 132);
+    }
+  }
+
+  document.getElementById('infoPattern').textContent =
+    `${spots.length} 斑 · ${extinct} 消光` +
+    (nDbl ? ` · 二次 ${nDbl}` : '') +
+    (defectInfo && defectInfo.active ? ` · ${defectInfo.label}` : '');
+}
+
+function niceNumber(x){
+  if (!isFinite(x) || x <= 0) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(x)));
+  const f = x / e;
+  let n;
+  if (f < 1.5) n = 1;
+  else if (f < 3.5) n = 2;
+  else if (f < 7.5) n = 5;
+  else n = 10;
+  return n*e;
+}
+
+function drawPolyPattern(rings, lam){
+  const c = document.getElementById('canvasPattern');
+  const ctx = c.getContext('2d');
+  const W = WP, H = HP;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#04070b';
+  ctx.fillRect(0,0,W,H);
+  const cx = W/2, cy = H/2;
+  const scale = Math.min(W,H) * 0.44 / state.viewR;
+
+  ctx.strokeStyle = 'rgba(53,208,186,0.06)';
+  ctx.lineWidth = 1;
+  for (let r = state.viewR/8; r < state.viewR; r += state.viewR/8){
+    ctx.beginPath(); ctx.arc(cx, cy, r*scale, 0, Math.PI*2); ctx.stroke();
+  }
+
+  for (const ring of rings){
+    const sinTheta = lam * ring.gm / 2;
+    if (sinTheta >= 1) continue;
+    const theta = Math.asin(sinTheta);
+    const radiusMM = state.camLen * Math.tan(2 * theta);
+    const radiusPx = radiusMM * scale;
+    if (radiusPx < 0.5 || radiusPx > Math.max(W,H)*2.5) continue;
+    const a = ring.I;
+    ctx.strokeStyle = `rgba(60,150,230,${a*0.16})`;
+    ctx.lineWidth = 8 + 14*a;
+    ctx.beginPath(); ctx.arc(cx, cy, radiusPx, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = `rgba(170,235,255,${a*0.9})`;
+    ctx.lineWidth = 1.4 + 3.2*a;
+    ctx.beginPath(); ctx.arc(cx, cy, radiusPx, 0, Math.PI*2); ctx.stroke();
+  }
+
+  const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,10);
+  cg.addColorStop(0,'rgba(255,255,255,0.95)');
+  cg.addColorStop(0.3,'rgba(120,220,255,0.45)');
+  cg.addColorStop(1,'rgba(60,150,255,0)');
+  ctx.fillStyle = cg;
+  ctx.beginPath(); ctx.arc(cx,cy,10,0,Math.PI*2); ctx.fill();
+
+  const barMM = niceNumber(state.viewR/3.2);
+  const barPx = barMM * scale;
+  const bx = 18, by = H - 24;
+  ctx.strokeStyle = 'rgba(215,224,234,0.55)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(bx, by); ctx.lineTo(bx+barPx, by);
+  ctx.moveTo(bx, by-4.5); ctx.lineTo(bx, by+4.5);
+  ctx.moveTo(bx+barPx, by-4.5); ctx.lineTo(bx+barPx, by+4.5);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(215,224,234,0.7)';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(barMM.toFixed(barMM < 1 ? 2 : 0) + ' mm', bx + barPx/2, by - 9);
+  ctx.textAlign = 'left';
+
+  const structName = isQuasi()
+    ? PRESETS[state.latticeType].name
+    : (state.latticeType === 'custom' ? '自定义基元' : PRESETS[state.latticeType].name);
+
+  ctx.fillStyle = 'rgba(125,141,158,0.9)';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.fillText(`λ = ${(lam*1000).toFixed(2)} pm`, 18, 20);
+  ctx.fillText(`Lλ = ${(state.camLen*lam).toFixed(2)} mm·nm`, 18, 36);
+  ctx.fillText(`${structName}`, 18, 52);
+  ctx.fillStyle = 'rgba(53,208,186,0.85)';
+  ctx.fillText(`德拜-谢乐环 ${rings.length}`, 18, 68);
+  ctx.fillStyle = 'rgba(125,141,158,0.7)';
+  ctx.fillText('多晶模式：孪晶、HOLZ、二次衍射、缺陷不适用', 18, 84);
+
+  document.getElementById('infoPattern').textContent = `多晶 · ${rings.length} 环`;
+}
+
+function drawAmorphousPattern(rings, lam){
+  const c = document.getElementById('canvasPattern');
+  const ctx = c.getContext('2d');
+  const W = WP, H = HP;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#04070b';
+  ctx.fillRect(0,0,W,H);
+  const cx = W/2, cy = H/2;
+  const scale = Math.min(W,H) * 0.44 / state.viewR;
+
+  ctx.strokeStyle = 'rgba(53,208,186,0.05)';
+  ctx.lineWidth = 1;
+  for (let r = state.viewR/8; r < state.viewR; r += state.viewR/8){
+    ctx.beginPath(); ctx.arc(cx, cy, r*scale, 0, Math.PI*2); ctx.stroke();
+  }
+
+  const cg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(W,H)*0.08);
+  cg.addColorStop(0,   'rgba(255,255,255,0.98)');
+  cg.addColorStop(0.2, 'rgba(170,230,255,0.75)');
+  cg.addColorStop(0.55,'rgba(80,170,240,0.22)');
+  cg.addColorStop(1,   'rgba(20,60,120,0)');
+  ctx.fillStyle = cg;
+  ctx.beginPath(); ctx.arc(cx, cy, Math.min(W,H)*0.08, 0, Math.PI*2); ctx.fill();
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const ring of rings){
+    const rPx = ring.R * scale;
+    if (!isFinite(rPx) || rPx < 0.5) continue;
+    if (rPx > Math.max(W,H) * 3) continue;
+    const wPx = Math.max(1.5, ring.wR * scale);
+    const I = ring.I;
+    const layers = 12;
+    for (let k=0; k<layers; k++){
+      const f = k/(layers-1) - 0.5;
+      const r = rPx + f * wPx * 2;
+      if (r < 0.5) continue;
+      const a = I * Math.exp(-f*f*6) * 0.18;
+      if (a < 0.002) continue;
+      ctx.strokeStyle = `rgba(160,225,255,${a})`;
+      ctx.lineWidth = Math.max(1.2, wPx * 0.42);
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  const barMM = niceNumber(state.viewR/3.2);
+  const barPx = barMM * scale;
+  const bx = 18, by = H - 24;
+  ctx.strokeStyle = 'rgba(215,224,234,0.55)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(bx, by); ctx.lineTo(bx+barPx, by);
+  ctx.moveTo(bx, by-4.5); ctx.lineTo(bx, by+4.5);
+  ctx.moveTo(bx+barPx, by-4.5); ctx.lineTo(bx+barPx, by+4.5);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(215,224,234,0.7)';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(barMM.toFixed(barMM < 1 ? 2 : 0) + ' mm', bx + barPx/2, by - 9);
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = 'rgba(125,141,158,0.9)';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.fillText(`λ = ${(lam*1000).toFixed(2)} pm`, 18, 20);
+  ctx.fillText(`Lλ = ${(state.camLen*lam).toFixed(2)} mm·nm`, 18, 36);
+  ctx.fillStyle = 'rgba(142,203,240,0.95)';
+  ctx.fillText('非晶态（短程序 · 无长程序）', 18, 52);
+  ctx.fillStyle = 'rgba(53,208,186,0.85)';
+  ctx.fillText(`弥散晕环 ${rings.length} 个`, 18, 68);
+  ctx.fillStyle = 'rgba(125,141,158,0.7)';
+  ctx.fillText(`平均间距 d ≈ ${state.amorphousD.toFixed(3)} nm`, 18, 84);
+  ctx.fillText(`无序度 σ = ${state.amorphousDisp.toFixed(2)}`, 18, 100);
+
+  document.getElementById('infoPattern').textContent = `非晶 · ${rings.length} 晕环`;
+}
+
+function draw3D(spots, gmax, lam){
+  const c = document.getElementById('canvas3d');
+  const ctx = c.getContext('2d');
+  const W = W3, H = H3;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#05080d';
+  ctx.fillRect(0,0,W,H);
+  const cx = W/2, cy = H/2;
+  const scale = Math.min(W,H) * 0.36 / Math.max(gmax*1.05, 1e-3);
+  const P = p => project(p, scale, cx, cy);
+  const holzOn = state.showHOLZ === 'on';
+
+  const R = Math.max(1e-6, (1/lam) * state.curvature);
+  const rhoMax = Math.min(gmax*1.06, R*0.985);
+  const surfZ = rho => -R + Math.sqrt(Math.max(0, R*R - rho*rho));
+
+  ctx.lineWidth = 1;
+  const rings = 9;
+  for (let i=1; i<=rings; i++){
+    const rho = rhoMax * i/rings;
+    const z = surfZ(rho);
+    ctx.beginPath();
+    let first = true;
+    for (let a=0; a<=72; a++){
+      const th = a/72 * Math.PI*2;
+      const q = P([rho*Math.cos(th), rho*Math.sin(th), z]);
+      if (first){ ctx.moveTo(q.x, q.y); first = false; }
+      else ctx.lineTo(q.x, q.y);
+    }
+    ctx.strokeStyle = `rgba(53,208,186,${0.05 + 0.10*(i/rings)})`;
+    ctx.stroke();
+  }
+  for (let a=0; a<16; a++){
+    const th = a/16 * Math.PI*2;
+    ctx.beginPath();
+    for (let i=0; i<=26; i++){
+      const rho = rhoMax * i/26;
+      const z = surfZ(rho);
+      const q = P([rho*Math.cos(th), rho*Math.sin(th), z]);
+      i===0 ? ctx.moveTo(q.x,q.y) : ctx.lineTo(q.x,q.y);
+    }
+    ctx.strokeStyle = 'rgba(53,208,186,0.11)';
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  for (let a=0; a<=100; a++){
+    const th = a/100*Math.PI*2;
+    const q = P([rhoMax*Math.cos(th), rhoMax*Math.sin(th), surfZ(rhoMax)]);
+    a===0 ? ctx.moveTo(q.x,q.y) : ctx.lineTo(q.x,q.y);
+  }
+  ctx.strokeStyle = 'rgba(53,208,186,0.35)';
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
+
+  const planeHalf = gmax*1.02;
+  const corners = [
+    [-planeHalf,-planeHalf,0],[ planeHalf,-planeHalf,0],
+    [ planeHalf, planeHalf,0],[-planeHalf, planeHalf,0]
+  ].map(P);
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x,corners[0].y);
+  for (let i=1;i<4;i++) ctx.lineTo(corners[i].x,corners[i].y);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(60,90,130,0.05)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(90,130,175,0.22)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  const items = spots.map(sp=>{
+    const q = P(sp.g);
+    return {sp, q};
+  }).sort((A,B)=>B.q.depth - A.q.depth);
+
+  for (const {sp, q} of items){
+    const I = sp.I;
+    const rad = 1.6 + 3.6*I;
+    const col = pointColors(sp.source, sp.isHOLZ, I, holzOn);
+    const grd = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, rad*3.2);
+    grd.addColorStop(0, col.haloInner);
+    grd.addColorStop(0.35, col.halo);
+    grd.addColorStop(1, 'rgba(30,80,150,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(q.x, q.y, rad*3.2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = col.core;
+    ctx.beginPath(); ctx.arc(q.x, q.y, rad*0.65, 0, Math.PI*2); ctx.fill();
+  }
+
+  const o = P([0,0,0]);
+  const og = ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,14);
+  og.addColorStop(0,'rgba(255,255,255,0.95)');
+  og.addColorStop(0.3,'rgba(120,220,255,0.45)');
+  og.addColorStop(1,'rgba(60,150,255,0)');
+  ctx.fillStyle = og;
+  ctx.beginPath(); ctx.arc(o.x,o.y,14,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(o.x,o.y,2.6,0,Math.PI*2); ctx.fill();
+
+  const a0 = P([0,0,-planeHalf*0.85]);
+  const a1 = P([0,0,-planeHalf*0.10]);
+  ctx.strokeStyle = 'rgba(242,165,74,0.85)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(a0.x,a0.y); ctx.lineTo(a1.x,a1.y);
+  ctx.stroke();
+  const ang = Math.atan2(a1.y-a0.y, a1.x-a0.x);
+  ctx.beginPath();
+  ctx.moveTo(a1.x, a1.y);
+  ctx.lineTo(a1.x - 9*Math.cos(ang-0.38), a1.y - 9*Math.sin(ang-0.38));
+  ctx.lineTo(a1.x - 9*Math.cos(ang+0.38), a1.y - 9*Math.sin(ang+0.38));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(242,165,74,0.9)';
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(242,165,74,0.85)';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.fillText('k₀ (电子束)', a0.x + 10, a0.y + 4);
+
+  ctx.fillStyle = 'rgba(125,141,158,0.8)';
+  ctx.font = '11px ui-monospace, Menlo, monospace';
+  ctx.fillText(`球半径 1/λ = ${(1/lam).toFixed(0)} nm⁻¹`, 14, H-38);
+  ctx.fillText(`显示曲率放大 ${(1/state.curvature).toFixed(0)}×`, 14, H-22);
+  ctx.fillText(`倒易点阵范围 ±${gmax.toFixed(1)} nm⁻¹`, 14, H-6);
+
+  if (state.zoneAxis && state.zoneAxis.trim()){
+    ctx.fillStyle = 'rgba(53,208,186,0.9)';
+    ctx.fillText(`B = [${state.zoneAxis.trim()}]`, 14, 20);
+  }
+}
+
+function draw3DAmorphous(){
+  const c = document.getElementById('canvas3d');
+  const ctx = c.getContext('2d');
+  const W = W3, H = H3;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#05080d';
+  ctx.fillRect(0,0,W,H);
+  const cx = W/2, cy = H/2;
+  const rad = Math.min(W,H) * 0.42;
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+  g.addColorStop(0,   'rgba(140,210,255,0.14)');
+  g.addColorStop(0.35,'rgba(80,160,230,0.06)');
+  g.addColorStop(0.7, 'rgba(40,100,180,0.02)');
+  g.addColorStop(1,   'rgba(10,30,60,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI*2); ctx.fill();
+  for (let i=1; i<=4; i++){
+    const r = rad * 0.18 * i;
+    ctx.strokeStyle = `rgba(53,208,186,${0.12 - i*0.02})`;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(142,203,240,0.95)';
+  ctx.font = '13px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('非晶态', cx, H-46);
+  ctx.fillStyle = 'rgba(125,141,158,0.85)';
+  ctx.font = '11.5px ui-monospace, Menlo, monospace';
+  ctx.fillText('短程序 · 无长程序 · 弥散散射', cx, H-28);
+  ctx.textAlign = 'left';
+}
+
+let rafPending = false;
+function scheduleRender(){
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(()=>{ rafPending = false; render(); });
+}
+
+/* =========================================================
+   ★ 修改 #F：多晶 viewR 自动适配
+   ========================================================= */
+function autoFitPolyView(){
+  const lam = wavelength(state.voltage);
+  const lat = recipLattice(state.a, state.b, state.c, state.alpha, state.beta, state.gamma);
+  if (!lat) return;
+  const { rings } = computeRings(lam, lat, activeBasis, maxF);
+  if (!rings.length) return;
+  let maxR = 0;
+  for (const ring of rings){
+    const sinTheta = lam * ring.gm / 2;
+    if (sinTheta >= 0.999) continue;
+    const R = state.camLen * Math.tan(2 * Math.asin(sinTheta));
+    if (R > maxR) maxR = R;
+  }
+  if (maxR > 0){
+    const newViewR = Math.min(60, Math.max(3, maxR * 1.4));
+    if (Math.abs(newViewR - state.viewR) > 0.5) setParamValue('viewR', newViewR);
+  }
+}
+
+function render(){
+  // ★ 每次渲染触发持久化（节流）
+  scheduleSaveState();
+
+  const lam = wavelength(state.voltage);
+  document.getElementById('out_lam').innerHTML =
+    `<span class="k">波长 λ</span> <b>${(lam*1000).toFixed(3)} pm</b>`;
+  document.getElementById('out_cam').innerHTML =
+    `<span class="k">相机常数 Lλ</span> <b>${(state.camLen*lam).toFixed(3)} mm·nm</b>`;
+
+  if (state.sampleType === 'amorphous'){
+    const rings = computeAmorphousRings(lam);
+    document.getElementById('out_maxF').innerHTML =
+      `<span class="k">结构</span> <span class="amor">非晶（短程序）</span>`;
+    document.getElementById('out_mode').innerHTML =
+      `<span class="k">模式</span> <b>非晶</b>`;
+    document.getElementById('out_ext').innerHTML =
+      `<span class="k">弥散晕环</span> <b>${rings.length}</b> 个`;
+    document.getElementById('out_twin').innerHTML =
+      `<span class="k">孪晶</span> <span style="color:#5a6b7c">非晶模式不适用</span>`;
+    document.getElementById('out_holz').innerHTML =
+      `<span class="k">HOLZ</span> <span style="color:#5a6b7c">非晶模式不适用</span>`;
+    document.getElementById('out_double').innerHTML =
+      `<span class="k">二次衍射</span> <span style="color:#5a6b7c">非晶模式不适用</span>`;
+    document.getElementById('out_defect').innerHTML =
+      `<span class="k">缺陷</span> <span style="color:#5a6b7c">非晶模式不适用</span>`;
+    drawAmorphousPattern(rings, lam);
+    draw3DAmorphous();
+    return;
+  }
+
+  const lat = recipLattice(state.a, state.b, state.c, state.alpha, state.beta, state.gamma);
+  const quasi = isQuasi();
+
+  document.getElementById('out_maxF').innerHTML = quasi
+    ? `<span class="k">基元</span> <span class="quasi">准晶体（无常规基元）</span>`
+    : `<span class="k">基元散射因子 Σw</span> <b>${maxF.toFixed(1)}</b>`;
+  document.getElementById('out_mode').innerHTML =
+    `<span class="k">模式</span> <b>${state.sampleType === 'poly' ? '多晶' : (quasi ? '准晶' : '单晶')}</b>`;
+
+  if (!lat){
+    const c = document.getElementById('canvasPattern');
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,WP,HP);
+    ctx.fillStyle = '#04070b'; ctx.fillRect(0,0,WP,HP);
+    ctx.fillStyle = '#f2a54a';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('晶格参数不合法（体积为零）', WP/2, HP/2);
+    ctx.textAlign = 'left';
+    return;
+  }
+
+  if (state.sampleType === 'poly'){
+    const { rings, gmax } = computeRings(lam, lat, activeBasis, maxF);
+    drawPolyPattern(rings, lam);
+    draw3D([], gmax, lam);
+    document.getElementById('out_ext').innerHTML =
+      `<span class="k">德拜-谢乐环</span> <b>${rings.length}</b> 个`;
+    document.getElementById('out_twin').innerHTML =
+      `<span class="k">孪晶</span> <span style="color:#5a6b7c">多晶模式下不适用</span>`;
+    document.getElementById('out_holz').innerHTML =
+      `<span class="k">HOLZ</span> <span style="color:#5a6b7c">多晶模式下不适用</span>`;
+    document.getElementById('out_double').innerHTML =
+      `<span class="k">二次衍射</span> <span style="color:#5a6b7c">多晶模式下不适用</span>`;
+    document.getElementById('out_defect').innerHTML =
+      `<span class="k">缺陷</span> <span style="color:#5a6b7c">多晶模式下不适用</span>`;
+    return;
+  }
+
+  const { reflections, gmax, hasTwin, isQuasi: qm } = computeReflections(lam, lat, activeBasis, maxF);
+  const spots = [];
+  let extinct = 0;
+
+  for (const ref of reflections){
+    if (ref.Fn < 1e-4){ extinct++; continue; }
+    const shape = Math.exp(-(ref.s/state.sigma)*(ref.s/state.sigma));
+    const I = ref.Fn*ref.Fn * shape;
+    if (I < 0.002) continue;
+    const kz = 1/lam + ref.g[2];
+    if (kz <= 0.001) continue;
+    const X = state.camLen * ref.g[0] / kz;
+    const Y = state.camLen * ref.g[1] / kz;
+    spots.push({...ref, I, X, Y});
+  }
+
+  let dblInfo = { active: false };
+  if (state.doubleDiffraction === 'on' && !qm && state.sampleType === 'single'){
+    addDoubleDiffraction(spots, lam, lat, activeBasis, maxF);
+    dblInfo.active = true;
+  }
+
+  const dLabel = {
+    thermal:'TDS', point:'点缺陷', dislocation:'位错',
+    fault:'层错', gb:'小角晶界', nano:'纳米晶', precipitate:'析出相'
+  };
+  const defectInfo = {
+    active: state.defectType !== 'none' && !qm,
+    label: dLabel[state.defectType] || '',
+  };
+  if (defectInfo.active) applyDefects(spots, lat, lam);
+
+  drawSinglePattern(spots, reflections, lam, extinct, hasTwin, qm, defectInfo, dblInfo);
+  draw3D(spots, gmax, lam);
+
+  const nTwin1 = spots.filter(s=>s.source==='twin' || s.source==='twin1').length;
+  const nTwin2 = spots.filter(s=>s.source==='twin2').length;
+  const nHOLZ = spots.filter(s=>s.isHOLZ).length;
+  const nDef = spots.filter(s=>s.source==='diffuse' || s.source==='precipitate').length;
+  const nDbl = spots.filter(s=>s.source==='double').length;
+
+  if (qm){
+    document.getElementById('out_ext').innerHTML =
+      `<span class="k">准晶</span> <span class="quasi">无常规消光</span>`;
+    document.getElementById('out_twin').innerHTML =
+      `<span class="k">孪晶</span> <span style="color:#5a6b7c">准晶模式下不适用</span>`;
+    document.getElementById('out_holz').innerHTML =
+      state.showHOLZ === 'on'
+        ? `<span class="k">HOLZ</span> <span class="holz">${nHOLZ}</span> 个`
+        : `<span class="k">HOLZ</span> <span style="color:#5a6b7c">关闭</span>`;
+    document.getElementById('out_double').innerHTML =
+      `<span class="k">二次衍射</span> <span style="color:#5a6b7c">准晶不适用</span>`;
+    document.getElementById('out_defect').innerHTML =
+      `<span class="k">缺陷</span> <span style="color:#5a6b7c">准晶不适用</span>`;
+  } else {
+    document.getElementById('out_ext').innerHTML =
+      `<span class="k">系统消光</span> <b>${extinct}</b> / ${reflections.length} 个反射`;
+    if (hasTwin && state.twinMode === 'triple'){
+      document.getElementById('out_twin').innerHTML =
+        `<span class="k">三重孪晶</span> ` +
+        `<span class="twin1">120° ${nTwin1}</span> · ` +
+        `<span class="twin2">240° ${nTwin2}</span>`;
+    } else if (hasTwin){
+      document.getElementById('out_twin').innerHTML =
+        `<span class="k">孪晶</span> <span class="twin">${state.twinPlane}</span> · 斑 ${nTwin1}`;
+    } else {
+      document.getElementById('out_twin').innerHTML =
+        `<span class="k">孪晶</span> <span style="color:#5a6b7c">关闭</span>`;
+    }
+    document.getElementById('out_holz').innerHTML =
+      state.showHOLZ === 'on'
+        ? `<span class="k">HOLZ</span> <span class="holz">${nHOLZ}</span> 个（阈值 ${state.holzThreshold.toFixed(2)} nm⁻¹）`
+        : `<span class="k">HOLZ</span> <span style="color:#5a6b7c">关闭</span>`;
+    if (dblInfo.active){
+      document.getElementById('out_double').innerHTML =
+        `<span class="k">二次衍射</span> <span class="dbl">${nDbl}</span> 个`;
+    } else {
+      document.getElementById('out_double').innerHTML =
+        `<span class="k">二次衍射</span> <span style="color:#5a6b7c">关闭</span>`;
+    }
+    if (defectInfo.active){
+      const extra = nDef > 0 ? `（额外弥散/析出 ${nDef}）` : '';
+      document.getElementById('out_defect').innerHTML =
+        `<span class="k">缺陷</span> <span class="defect">${defectInfo.label}</span> ${extra}`;
+    } else {
+      document.getElementById('out_defect').innerHTML =
+        `<span class="k">缺陷</span> <span style="color:#5a6b7c">无（完整晶体）</span>`;
+    }
+  }
+}
+
+function autoFitAmorphousView(){
+  const lam = wavelength(state.voltage);
+  const d0  = state.amorphousD;
+  const q1  = 2*Math.PI / d0;
+  const sinT = lam * q1 / 2;
+  if (sinT >= 0.999) return;
+  const R1 = state.camLen * Math.tan(2*Math.asin(sinT));
+  if (!isFinite(R1) || R1 <= 0) return;
+  const newViewR = Math.min(60, Math.max(3, R1 * 1.4));
+  if (Math.abs(newViewR - state.viewR) > 0.5) setParamValue('viewR', newViewR);
+}
+
+/* =========================================================
+   ★ 修改 #2 & #3：带轴 UI + 控件可用性
+   ========================================================= */
+function updateZoneInfo(){
+  const info = document.getElementById('zoneInfo');
+  if (!info) return;
+  const str = (state.zoneAxis || '').trim();
+  if (!str){ info.textContent = ''; return; }
+  const uvw = parseHKL(str);
+  if (!uvw){
+    info.textContent = '⚠ 格式错';
+    info.style.color = '#f2a54a';
+    return;
+  }
+  if (uvw[0]===0 && uvw[1]===0 && uvw[2]===0){
+    info.textContent = '⚠ 零向量';
+    info.style.color = '#f2a54a';
+    return;
+  }
+  info.textContent = `[${uvw.join(' ')}]`;
+  info.style.color = 'rgba(53,208,186,0.9)';
+}
+
+function applyZoneAxis(){
+  const inp = document.getElementById('zoneInput');
+  if (!inp) return;
+  const val = inp.value.trim();
+  // 校验：若输入非法，直接返回，不修改 state.tilt
+  if (val && !parseHKL(val)){
+    updateZoneInfo();
+    return;
+  }
+  state.zoneAxis = val;
+  if (val){
+    setParamValue('tiltX', 0);
+    setParamValue('tiltY', 0);
+    // 保留 tiltZ：允许绕电子束轴旋转花样
+  }
+  updateZoneInfo();
+  scheduleSaveState();
+  scheduleRender();
+}
+
+function clearZoneAxis(){
+  state.zoneAxis = '';
+  const zi = document.getElementById('zoneInput');
+  if (zi) zi.value = '';
+  updateZoneInfo();
+  scheduleSaveState();
+  scheduleRender();
+}
+
+/* ★ 修改 #3：根据模式禁用不生效的控件 */
+function updateControlAvailability(){
+  const isSingle = state.sampleType === 'single';
+  const isAmor = state.sampleType === 'amorphous';
+
+  const setDisabled = (id, disabled) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = disabled;
+    // 同步范围内的数字输入
+    if (el.type === 'range' && el.parentElement){
+      const numEl = el.parentElement.querySelector('.valInput');
+      if (numEl) numEl.disabled = disabled;
+    }
+  };
+
+  // 带轴：仅单晶
+  ['zoneInput', 'zoneApply', 'zoneClear'].forEach(id => setDisabled(id, !isSingle));
+
+  // 仅单晶可用
+  const singleOnly = [
+    'tiltX', 'tiltY', 'tiltZ',
+    'twinMode', 'twinPlane', 'twinAxis',
+    'showKikuchi', 'kikuchiAlpha',
+    'showHOLZ', 'holzThreshold',
+    'doubleDiffraction', 'doubleAmt', 'doubleMax', 'doubleSource',
+    'defectType', 'defectAmt', 'defectSize',
+  ];
+  singleOnly.forEach(k => setDisabled('in_'+k, !isSingle));
+
+  // 非晶参数：仅非晶
+  ['amorphousD', 'amorphousDisp', 'amorphousRings'].forEach(k =>
+    setDisabled('in_'+k, !isAmor)
+  );
+}
+
+/* =========================================================
+   ★ 修改 #B：导出 PNG
+   ========================================================= */
+function bindExport(){
+  const btn = document.getElementById('btnExport');
+  if (!btn) return;
+  btn.addEventListener('click', ()=>{
+    const canvas = document.getElementById('canvasPattern');
+    const zoneStr = (state.zoneAxis || '').trim().replace(/[^\w\-]/g, '') || 'tilt';
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0,19);
+    const a = document.createElement('a');
+    a.download = `diffraction_${zoneStr}_${ts}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+}
+
+function bindZoneBar(){
+  const inp = document.getElementById('zoneInput');
+  const btnApply = document.getElementById('zoneApply');
+  const btnClear = document.getElementById('zoneClear');
+  if (!inp) return;
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ e.preventDefault(); applyZoneAxis(); }
+  });
+  btnApply.addEventListener('click', applyZoneAxis);
+  btnClear.addEventListener('click', clearZoneAxis);
+}
+
+/* =========================================================
+   UI 构建
+   ========================================================= */
+function buildUI(){
+  const panel = document.getElementById('controls');
+  for (const g of groups){
+    const gd = document.createElement('div');
+    gd.className = 'group';
+    const title = document.createElement('div');
+    title.className = 'group-title';
+    title.textContent = g.title;
+    gd.appendChild(title);
+    for (const p of g.params){
+      // ★ 持久化：已有值保留，无则用默认
+      if (typeof state[p.key] === 'undefined') state[p.key] = p.def;
+      paramSpecs[p.key] = p;
+
+      if (p.type === 'select'){
+        const row = document.createElement('div');
+        row.className = 'flexrow';
+        const lab = document.createElement('label');
+        lab.setAttribute('for', 'in_'+p.key);
+        lab.textContent = p.label;
+        const sel = document.createElement('select');
+        sel.id = 'in_'+p.key;
+        for (const opt of p.options){
+          const o = document.createElement('option');
+          o.value = opt.value;
+          o.textContent = opt.label;
+          sel.appendChild(o);
+        }
+        sel.value = String(state[p.key]);
+        sel.addEventListener('change', ()=>{
+          state[p.key] = sel.value;
+          if (p.key === 'latticeType'){
+            onStructureChange();
+            const preset = PRESETS[sel.value];
+            if (preset && preset.lattice){
+              for (const [kk, vv] of Object.entries(preset.lattice)) setParamValue(kk, vv);
+            }
+          }
+          if (p.key === 'sampleType'){
+            updateControlAvailability();
+            if (sel.value === 'amorphous') autoFitAmorphousView();
+            else if (sel.value === 'poly') autoFitPolyView();
+          }
+          scheduleRender();
+        });
+        row.appendChild(lab);
+        row.appendChild(sel);
+        gd.appendChild(row);
+        continue;
+      }
+
+      if (p.type === 'text'){
+        const row = document.createElement('div');
+        row.className = 'flexrow';
+        const lab = document.createElement('label');
+        lab.setAttribute('for', 'in_'+p.key);
+        lab.textContent = p.label;
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.id = 'in_'+p.key;
+        inp.value = String(state[p.key] || '');
+        inp.placeholder = p.key === 'basisText' ? 'x,y,z,w; 0.5,0.5,0.5,1' : 'h,k,l';
+        inp.spellcheck = false;
+        if (p.key === 'basisText') basisInput = inp;
+        inp.addEventListener('input', ()=>{
+          state[p.key] = inp.value;
+          if (p.key === 'basisText'){
+            if (state.latticeType !== 'custom'){
+              state.latticeType = 'custom';
+              const selEl = document.getElementById('in_latticeType');
+              if (selEl) selEl.value = 'custom';
+            }
+            updateBasis();
+          }
+          scheduleRender();
+        });
+        row.appendChild(lab);
+        row.appendChild(inp);
+        gd.appendChild(row);
+        continue;
+      }
+
+      const row = document.createElement('div');
+      row.className = 'row';
+      const lab = document.createElement('label');
+      lab.setAttribute('for', 'in_'+p.key);
+      lab.textContent = p.label;
+      lab.title = p.label;
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.id = 'in_'+p.key;
+      slider.min = p.min; slider.max = p.max; slider.step = p.step;
+      slider.value = Number(state[p.key]);
+      const wrap = document.createElement('div');
+      wrap.className = 'valwrap';
+      const numInp = document.createElement('input');
+      numInp.type = 'number';
+      numInp.className = 'valInput';
+      numInp.min = p.min; numInp.max = p.max; numInp.step = p.step;
+      numInp.value = Number(state[p.key]).toFixed(p.dec);
+      numInp.title = '可直接输入数值，Enter 或失焦生效';
+      numInp.setAttribute('aria-label', p.label);
+      wrap.appendChild(numInp);
+      if (p.unit){
+        const unitEl = document.createElement('span');
+        unitEl.className = 'unit';
+        unitEl.textContent = p.unit;
+        wrap.appendChild(unitEl);
+      }
+      const commit = ()=>{
+        let v = parseFloat(numInp.value);
+        if (!isFinite(v)){ numInp.value = Number(state[p.key]).toFixed(p.dec); return; }
+        v = Math.min(p.max, Math.max(p.min, v));
+        if (p.step > 0){
+          const base = p.min;
+          v = base + Math.round((v - base)/p.step) * p.step;
+        }
+        v = Math.min(p.max, Math.max(p.min, v));
+        v = parseFloat(v.toFixed(10));
+        state[p.key] = v;
+        slider.value = v;
+        numInp.value = v.toFixed(p.dec);
+        scheduleRender();
+      };
+      numInp.addEventListener('change', commit);
+      numInp.addEventListener('keydown', e=>{
+        if (e.key === 'Enter'){ e.preventDefault(); numInp.blur(); }
+        else if (e.key === 'Escape'){ numInp.value = Number(state[p.key]).toFixed(p.dec); numInp.blur(); }
+      });
+      numInp.addEventListener('input', ()=>{
+        const v = parseFloat(numInp.value);
+        if (isFinite(v) && v >= p.min && v <= p.max){
+          state[p.key] = v;
+          slider.value = v;
+          scheduleRender();
+        }
+      });
+      slider.addEventListener('input', ()=>{
+        const v = parseFloat(slider.value);
+        state[p.key] = v;
+        numInp.value = v.toFixed(p.dec);
+        scheduleRender();
+      });
+      row.appendChild(lab);
+      row.appendChild(slider);
+      row.appendChild(wrap);
+      gd.appendChild(row);
+    }
+    panel.appendChild(gd);
+  }
+
+  const ro = document.createElement('div');
+  ro.className = 'group';
+  ro.innerHTML = `
+    <div class="group-title">实时数据</div>
+    <div class="readout">
+      <div id="out_lam"></div>
+      <div id="out_cam"></div>
+      <div id="out_maxF"></div>
+      <div id="out_mode"></div>
+      <div id="out_twin"></div>
+      <div id="out_holz"></div>
+      <div id="out_double"></div>
+      <div id="out_ext"></div>
+      <div id="out_defect"></div>
+    </div>
+  `;
+  panel.appendChild(ro);
+
+  const btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.textContent = '↺ 恢复默认参数';
+  btn.addEventListener('click', ()=>{
+    for (const g of groups) for (const p of g.params){
+      state[p.key] = p.def;
+      const el = document.getElementById('in_'+p.key);
+      if (!el) continue;
+      el.value = p.def;
+      if (p.type === 'range'){
+        const numEl = el.parentElement.querySelector('.valInput');
+        if (numEl) numEl.value = p.def.toFixed(p.dec);
+      }
+    }
+    onStructureChange();
+    state.zoneAxis = '';
+    const zi = document.getElementById('zoneInput');
+    if (zi) zi.value = '';
+    updateZoneInfo();
+    updateControlAvailability();
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+    yaw = 0.72; pitch = 0.42;
+    scheduleRender();
+  });
+  panel.appendChild(btn);
+
+  const tip = document.createElement('div');
+  tip.style.cssText = 'margin-top:14px;font-size:11px;line-height:1.7;color:#5a6b7c;';
+  tip.innerHTML = `
+    <b style="color:#35d0ba">带轴快速取向</b><br>
+    · 顶部输入 <b>[uvw]</b> 后按 Enter 或点"应用"，
+      自动计算该带轴零层花样。<br>
+    · 支持 <code>001</code> / <code>1,1,1</code> /
+      <code>1-11</code>（紧凑写法）。<br>
+    · 应用带轴后 tiltX/tiltY 清零；tiltZ 保留
+      可用于绕束轴旋转花样。<br><br>
+    <b style="color:#e2b4ff">二次衍射</b><br>
+    · 强反射 g₁+g₂ 产生二次斑，可"复活"消光位置。<br>
+    · 源斑类型可选"仅原晶"或"原晶+孪晶"。<br><br>
+    <b style="color:#8ecbf0">非晶（短程序）</b><br>
+    · 液体/硬球模型产生弥散晕环。<br>
+    · d 决定环半径，σ 越大越模糊。<br><br>
+    <b style="color:#ff9f6a">晶体缺陷</b><br>
+    · TDS / 点缺陷 / 位错 / 层错 / 小角晶界 /
+      纳米晶 / 析出相，仅单晶模式生效。<br><br>
+    <b style="color:#7d8d9e">提示</b><br>
+    · 参数会自动保存到浏览器 localStorage，
+      刷新页面后恢复。<br>
+    · 右上角 📷 按钮导出当前花样为 PNG。<br>
+    · 多晶/非晶模式下不生效的控件已置灰。
+  `;
+  panel.appendChild(tip);
+}
+
+function bindDrag(){
+  const c = document.getElementById('canvas3d');
+  let dragging = false, lx = 0, ly = 0;
+  c.addEventListener('pointerdown', e=>{
+    dragging = true; lx = e.clientX; ly = e.clientY;
+    c.setPointerCapture(e.pointerId);
+  });
+  c.addEventListener('pointermove', e=>{
+    if (!dragging) return;
+    const dx = e.clientX - lx;
+    const dy = e.clientY - ly;
+    lx = e.clientX; ly = e.clientY;
+    yaw   += dx * 0.008;
+    pitch += dy * 0.008;
+    pitch = Math.max(-1.45, Math.min(1.45, pitch));
+    scheduleRender();
+  });
+  const stop = ()=>{ dragging = false; };
+  c.addEventListener('pointerup', stop);
+  c.addEventListener('pointercancel', stop);
+  c.addEventListener('pointerleave', stop);
+}
+
+/* =========================================================
+   启动
+   ========================================================= */
+loadState();          // 1. 先加载持久化状态
+buildUI();            // 2. 用已有/默认值建立 UI
+onStructureChange();  // 3. 同步 basis
+bindDrag();
+bindZoneBar();
+bindExport();
+
+// 同步带轴输入框的显示值
+const _zi = document.getElementById('zoneInput');
+if (_zi) _zi.value = state.zoneAxis || '';
+
+updateZoneInfo();
+updateControlAvailability();
+
+function resizeAll(){
+  fitCanvases();
+  scheduleRender();
+}
+
+window.addEventListener('resize', resizeAll);
+if (window.ResizeObserver){
+  new ResizeObserver(resizeAll).observe(document.querySelector('.app'));
+}
+
+requestAnimationFrame(()=>{
+  fitCanvases();
+  render();
+});
+</script>
+</body>
+</html>
