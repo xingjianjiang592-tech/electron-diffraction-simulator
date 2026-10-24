@@ -56,7 +56,7 @@ P、I、F、C、A、B、金刚石、NaCl、CsCl、ZnS、HCP、纤锌矿 ZnO、�
 
 ### 方式二：在线访问
 
-访问你的 GitHub Pages 部署地址（如 `[https://username.github.io/electron-diffraction/](https://xingjianjiang592-tech.github.io/electron-diffraction-simulator/)`）
+（`(https://xingjianjiang592-tech.github.io/electron-diffraction-simulator/)`）
 
 ### 快速上手
 
